@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ελιές - Πρόβλεψη Παραγωγής</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --surface-light: #243447;
+            --border: #2d3f52;
+            --text: #e7e9ea;
+            --text-secondary: #8b98a5;
+            --accent: #65d685;
+            --accent-olive: #8fae6d;
+            --accent-gold: #f5c842;
+            --shadow: rgba(0,0,0,0.4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; font-size: 14px; min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+        header { text-align: center; margin-bottom: 40px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+        .olive-icon { font-size: 42px; }
+        h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px var(--shadow); }
+        .card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+        .prediction-hero { text-align: center; padding: 48px 24px; background: linear-gradient(145deg, var(--surface) 0%, var(--surface-light) 100%); border: 1px solid var(--border); border-radius: 16px; position: relative; overflow: hidden; }
+        .prediction-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-olive), var(--accent-gold)); }
+        .year-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); color: #0f1419; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .big-number { font-size: 64px; font-weight: 700; line-height: 1.1; background: linear-gradient(135deg, var(--accent), var(--accent-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .unit { font-size: 20px; color: var(--text-secondary); margin-top: 8px; }
+        .confidence { font-size: 13px; color: var(--text-secondary); margin-top: 16px; background: var(--bg); padding: 8px 16px; border-radius: 20px; display: inline-block; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .stat { text-align: center; padding: 20px; background: var(--surface-light); border-radius: 10px; border: 1px solid var(--border); }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+        .stat-icon { font-size: 24px; margin-bottom: 8px; }
+        .weather-info { display: flex; justify-content: center; gap: 40px; padding: 20px 0; border-top: 1px solid var(--border); margin-top: 24px; flex-wrap: wrap; }
+        .weather-item { text-align: center; }
+        .weather-item .value { font-size: 20px; font-weight: 600; color: var(--accent-gold); }
+        .weather-item .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+        .timing-note { font-size: 12px; color: var(--text-secondary); padding: 12px 16px; background: var(--bg); border-radius: 8px; margin-top: 16px; border-left: 3px solid var(--accent-olive); }
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .chart-container { position: relative; height: 240px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 12px 14px; background: var(--surface-light); font-weight: 600; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        tr:hover td { background: var(--surface-light); }
+        .year-col { font-weight: 600; color: var(--text) !important; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--surface-light); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        footer { text-align: center; padding: 30px; color: var(--text-secondary); font-size: 12px; }
+        footer a { color: var(--accent); text-decoration: none; }
+        .model-badge { display: inline-block; background: var(--bg); padding: 4px 12px; border-radius: 12px; font-size: 11px; color: var(--accent-olive); border: 1px solid var(--accent-olive); margin-top: 12px; }
+        @media (max-width: 768px) { 
+            .charts-grid { grid-template-columns: 1fr; } 
+            .grid-3 { grid-template-columns: 1fr; } 
+            .weather-info { flex-direction: column; gap: 20px; }
+            .big-number { font-size: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="olive-icon">🫒</span>
+            <div><h1>Πρόβλεψη Παραγωγής Ελιών</h1><p class="subtitle">Ελαιοπαραγωγική Μονάδα Νέας Ζίχνης</p></div>
+        </header>
+        <div class="prediction-hero" id="prediction"><div style="padding:40px;">Φόρτωση δεδομένων...</div></div>
+        <div class="grid-3">
+            <div class="card"><div class="card-title">Τελευταία Σοδειά</div><div class="stat"><div class="stat-icon">🌿</div><div class="stat-value" id="lastHarvest">-</div><div class="stat-label" id="lastYear">-</div></div></div>
+            <div class="card"><div class="card-title">Μέσος Όρος (16 έτη)</div><div class="stat"><div class="stat-icon">📊</div><div class="stat-value" id="avgHarvest">-</div><div class="stat-label">κιλά/έτος</div></div></div>
+            <div class="card"><div class="card-title">Δέντρα</div><div class="stat"><div class="stat-icon">🌳</div><div class="stat-value" id="treeCount">-</div><div class="stat-label" id="treeYear">ελιές</div></div></div>
+        </div>
+        <div class="charts-grid">
+            <div class="card"><div class="card-title">Παραγωγή Ελιών (kg)</div><div class="chart-container"><canvas id="chartOlives"></canvas></div></div>
+            <div class="card"><div class="card-title">Παραγωγή Λαδιού (kg)</div><div class="chart-container"><canvas id="chartOil"></canvas></div></div>
+            <div class="card"><div class="card-title">Απόδοση (λάδι/ελιές)</div><div class="chart-container"><canvas id="chartRatio"></canvas></div></div>
+            <div class="card"><div class="card-title">Δέντρα & Απόδοση ανά Δέντρο</div><div class="chart-container"><canvas id="chartTrees"></canvas></div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Καιρικά Δεδομένα (Έτος -1)</div>
+            <div class="weather-info">
+                <div class="weather-item"><div class="value" id="augClouds">~19%</div><div class="label">☁️ Συννεφιά Αυγούστου</div></div>
+                <div class="weather-item"><div class="value" id="decClouds">~53%</div><div class="label">☁️ Συννεφιά Δεκεμβρίου</div></div>
+                <div class="weather-item"><div class="value" id="julTemp">~29°C</div><div class="label">🌡️ Θερμοκρασία Ιουλίου</div></div>
+            </div>
+            <div class="timing-note">📅 Η πρόβλεψη βασίζεται στα καιρικά δεδομένα του προηγούμενου έτους (καλοκαίρι-φθινόπωρο).</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Στατιστικό Μοντέλο</div>
+            <div class="timing-note" style="margin-top:0">
+                <strong>🔬 Μέθοδος:</strong> Απλή Γραμμική Παλινδρόμηση<br>
+                <strong>📈 Μεταβλητές:</strong> Συννεφιά Αυγούστου, Δεκεμβρίου, Θερμοκρασία Ιουλίου<br>
+                <strong>📊 Προσαρμοσμένο R²:</strong> 0.62 · <strong>p-value:</strong> 0.002<br>
+                <strong>⚠️ Τυπικό σφάλμα:</strong> ~822 kg
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Ιστορικά Δεδομένα</div>
+            <table id="historyTable"><thead><tr><th>Έτος</th><th>Δέντρα</th><th>Ελιές</th><th>Λάδι</th><th>Απόδοση</th></tr></thead><tbody></tbody></table>
+        </div>
+        <footer>
+            <button class="btn" onclick="loadData()">↻ Ενημέρωση Δεδομένων</button>
+            <p style="margin-top:20px">API: <a href="http://localhost:8001">localhost:8001</a> · 🫒 Ελιές Νέας Ζίχνης</p>
+        </footer>
+    </div>
+    <script>
+        const API = 'http://localhost:8001';
+        let chartOlives, chartOil, chartRatio, chartTrees;
+        const chartColors = { accent: '#65d685', gold: '#f5c842', olive: '#8fae6d', blue: '#4a9eff', text: '#8b98a5', grid: '#2d3f52' };
+        function initCharts() {
+            const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text, maxRotation: 45 } }, y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } } } };
+            chartOlives = new Chart(document.getElementById('chartOlives'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: chartColors.accent, borderRadius: 4 }] }, options: common });
+            chartOil = new Chart(document.getElementById('chartOil'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: chartColors.gold, borderRadius: 4 }] }, options: common });
+            chartRatio = new Chart(document.getElementById('chartRatio'), { type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: chartColors.blue, backgroundColor: 'rgba(74,158,255,0.15)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 4, pointBackgroundColor: chartColors.blue }] }, options: { ...common, scales: { ...common.scales, y: { ...common.scales.y, min: 0, max: 0.35 } } } });
+            chartTrees = new Chart(document.getElementById('chartTrees'), { type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: chartColors.text, backgroundColor: 'transparent', label: 'Δέντρα', yAxisID: 'y', tension: 0.3, borderWidth: 2, borderDash: [5,5] }, { data: [], borderColor: chartColors.accent, backgroundColor: 'transparent', label: 'Kg/Δέντρο', yAxisID: 'y1', tension: 0.3, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: chartColors.text } } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text } }, y: { type: 'linear', position: 'left', beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } }, y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: chartColors.text } } } } });
+        }
+        function updateCharts(data) {
+            const years = data.map(d => d.year);
+            chartOlives.data.labels = years; chartOlives.data.datasets[0].data = data.map(d => d.olives || 0); chartOlives.update();
+            chartOil.data.labels = years; chartOil.data.datasets[0].data = data.map(d => d.oil || 0); chartOil.update();
+            chartRatio.data.labels = years; chartRatio.data.datasets[0].data = data.map(d => d.ratio || 0); chartRatio.update();
+            chartTrees.data.labels = years;
+            chartTrees.data.datasets[0].data = data.map(d => d.trees || 0);
+            chartTrees.data.datasets[1].data = data.map(d => d.olives && d.trees ? d.olives / d.trees : 0);
+            chartTrees.update();
+        }
+        async function loadData() {
+            try {
+                const [dash, hist] = await Promise.all([fetch(API + '/api/dashboard').then(r => r.json()), fetch(API + '/api/history').then(r => r.json())]);
+                const p = dash.prediction || {};
+                document.getElementById('prediction').innerHTML = `
+                    <span class="year-badge">Πρόβλεψη ${p.year}</span>
+                    <div class="big-number">${(p.ensemble_olives_kg||0).toLocaleString()}</div>
+                    <div class="unit">κιλά ελιές</div>
+                    <div class="confidence">±${Math.round((p.ci_kg||800)).toLocaleString()} kg</div>
+                    <div style="margin-top:20px;color:var(--text-secondary)">≈ ${(p.estimated_oil_kg||0).toLocaleString()} κιλά λάδι</div>
+                    <div class="model-badge">📊 Στατιστικό Μοντέλο</div>
+                `;
+                document.getElementById('lastHarvest').textContent = dash.last_harvest?.olives?.toLocaleString() || '-';
+                document.getElementById('lastYear').textContent = dash.last_harvest?.year ? 'έτος '+dash.last_harvest.year : '-';
+                document.getElementById('avgHarvest').textContent = dash.historical_average?.olives_kg ? Math.round(dash.historical_average.olives_kg).toLocaleString() : '-';
+                document.getElementById('treeCount').textContent = dash.last_harvest?.trees || '-';
+                if (hist.data) { updateCharts(hist.data); document.querySelector('#historyTable tbody').innerHTML = hist.data.slice(-15).reverse().map(d => `<tr><td class="year-col">${d.year}</td><td>${d.trees||'-'}</td><td>${d.olives||'-'}</td><td>${d.oil||'-'}</td><td>${d.ratio?(d.ratio*100).toFixed(1)+'%':'-'}</td></tr>`).join(''); }
+            } catch(e) { document.getElementById('prediction').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);">⚠️ Σφάλμα σύνδεσης με το API</div>'; }
+        }
+        initCharts(); loadData();
+    </script>
+</body>
+</html>
