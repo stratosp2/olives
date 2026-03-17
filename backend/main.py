@@ -249,8 +249,15 @@ def get_prediction(
 @app.get("/api/history")
 def get_history():
     olives_sorted = olives.sort_values("year")
+    records = olives_sorted.to_dict("records")
+    # Fix ratio: calculate oil as percentage of olives
+    for r in records:
+        if r.get('olives') and r.get('oil'):
+            r['ratio'] = round(r['oil'] / r['olives'] * 100, 1)  # percentage
+        elif r.get('ratio'):
+            r['ratio'] = round(r['ratio'] * 100, 1)  # convert to percentage
     return to_native({
-        "data": olives_sorted.to_dict("records"),
+        "data": records,
         "year_range": {"start": int(olives["year"].min()), "end": int(olives["year"].max())}
     })
 

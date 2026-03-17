@@ -191,7 +191,7 @@
                 
                 if (hist.data) { 
                     updateCharts(hist.data); 
-                    document.querySelector('#historyTable tbody').innerHTML = hist.data.slice(-15).reverse().map(d => `<tr><td class="year-col">${d.year}</td><td>${d.trees||'-'}</td><td>${d.olives||'-'}</td><td>${d.oil||'-'}</td><td>${d.ratio?(d.ratio*100).toFixed(1)+'%':'-'}</td></tr>`).join(''); 
+                    document.querySelector('#historyTable tbody').innerHTML = hist.data.slice(-15).reverse().map(d => `<tr><td class="year-col">${d.year}</td><td>${d.trees||'-'}</td><td>${d.olives||'-'}</td><td>${d.oil||'-'}</td><td>${d.ratio?d.ratio.toFixed(1)+'%':'-'}</td></tr>`).join(''); 
                 }
             } catch(e) { 
                 document.getElementById('prediction').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);">⚠️ Σφάλμα σύνδεσης με το API</div>'; 
