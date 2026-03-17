@@ -293,6 +293,81 @@ def get_current_weather():
     
     return to_native(current)
 
+@app.get("/api/weather/update")
+def update_weather():
+    """Fetch latest weather from Open-Meteo API"""
+    try:
+        import requests
+        from datetime import datetime
+        
+        LAT = 40.7333
+        LON = 22.8333
+        
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": "temperature_2m,temperature_2m_max,temperature_2m_min,precipitation,wind_speed_10m_max,wind_speed_10m_mean,wind_gusts_10m_max,sunshine_duration,cloud_cover,snowfall_sum",
+            "past_days": 92,
+            "forecast_days": 7,
+            "timezone": "Europe/Athens"
+        }
+        
+        resp = requests.get(url, params=params, timeout=30)
+        data = resp.json()
+        hourly = data.get("hourly", {})
+        
+        records = []
+        times = hourly.get("time", [])
+        for i, t in enumerate(times):
+            records.append({
+                "Date": t[:10],
+                "Year": int(t[:4]),
+                "Month": int(t[5:7]),
+                "Avg_Temp": hourly.get("temperature_2m", [None])[i],
+                "Max_Temp": hourly.get("temperature_2m_max", [None])[i],
+                "Min_Temp": hourly.get("temperature_2m_min", [None])[i],
+                "Rain": hourly.get("precipitation", [0])[i] or 0,
+                "Max_Wind": hourly.get("wind_speed_10m_max", [None])[i],
+                "Avg_Wind": hourly.get("wind_speed_10m_mean", [None])[i],
+                "Avg_Gust": hourly.get("wind_gusts_10m_max", [None])[i],
+                "Sun_Hours": (hourly.get("sunshine_duration", [0])[i] or 0) / 3600,
+                "Clouds": hourly.get("cloud_cover", [None])[i],
+                "Snow": hourly.get("snowfall_sum", [0])[i] or 0,
+                "Pressure": 1013
+            })
+        
+        new_df = pd.DataFrame(records)
+        new_df["Date"] = pd.to_datetime(new_df["Date"])
+        
+        csv_path = os.path.join(DATA_DIR, "Nea_Zichni_scrapped_data_full.csv")
+        
+        if os.path.exists(csv_path):
+            old_df = pd.read_csv(csv_path)
+            old_df["Date"] = pd.to_datetime(old_df["Date"])
+            combined = pd.concat([old_df, new_df]).drop_duplicates(subset=["Date"]).sort_values("Date")
+            combined.to_csv(csv_path, index=False)
+        else:
+            new_df.to_csv(csv_path, index=False)
+        
+        global weather
+        weather = load_weather_data()
+        
+        latest = new_df.iloc[-1]
+        return {
+            "success": True,
+            "last_update": latest["Date"].strftime("%Y-%m-%d"),
+            "records_added": len(new_df),
+            "last_weather": {
+                "date": latest["Date"].strftime("%Y-%m-%d"),
+                "temp": round(latest["Avg_Temp"], 1),
+                "clouds": round(latest["Clouds"], 1)
+            }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
