@@ -278,7 +278,7 @@ def get_dashboard(model: str = Query("simple")):
 
 @app.get("/api/weather/current")
 def get_current_weather():
-    """Get REAL-TIME weather from Open-Meteo API"""
+    """Get weather - tries API, falls back to cached"""
     try:
         import requests
         LAT = 40.7333
@@ -296,7 +296,7 @@ def get_current_weather():
         data = resp.json()
         
         if "current" not in data:
-            return {"error": "No current data", "api_response": data}
+            raise Exception("No current data: " + str(data.get("error", "")))
         
         current = data.get("current", {})
         time_val = current.get("time", "")
@@ -311,7 +311,25 @@ def get_current_weather():
             "updated": time_val[:16] if time_val else ""
         }
     except Exception as e:
-        return {"error": str(e), "type": type(e).__name__}
+        # Fallback to cached data
+        try:
+            weather_sorted = weather.sort_values("Date", ascending=False)
+            latest = weather_sorted.iloc[0]
+            latest_date = latest["Date"]
+            wind_val = latest.get("Avg_Wind", 0)
+            if pd.isna(wind_val):
+                wind_val = 0
+            return {
+                "date": str(latest_date)[:10],
+                "temperature": round(float(latest["Avg_Temp"]), 1),
+                "humidity": 0,
+                "clouds": round(float(latest["Clouds"]), 1),
+                "rain": round(float(latest["Rain"]), 1),
+                "wind": round(float(wind_val), 1),
+                "updated": str(latest_date)[:10] + " (cached)"
+            }
+        except:
+            return {"error": str(e), "fallback": "failed"}
 
 @app.get("/api/weather/update")
 def update_weather():
