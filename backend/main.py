@@ -180,15 +180,6 @@ olives = load_olive_data()
 weather = load_weather_data()
 yearly_features = create_features(weather)
 
-@app.get("/")
-def root():
-    return {
-        "name": "Olive Yield Forecasting API",
-        "version": "2.0.0",
-        "available_models": list(AVAILABLE_MODELS.keys()),
-        "endpoints": ["/", "/api/prediction", "/api/history", "/api/models", "/api/dashboard"]
-    }
-
 @app.get("/", response_class=HTMLResponse)
 def root():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
