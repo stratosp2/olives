@@ -13,8 +13,9 @@ import os
 app = FastAPI(title="Olive Yield Forecasting API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-DATA_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FRONTEND_DIR = os.path.join(DATA_DIR, "frontend")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(os.path.dirname(BASE_DIR))
+FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
 
 import numpy as np
 
@@ -191,6 +192,9 @@ def root():
         with open(index_path, "r", encoding="utf-8") as f:
             return f.read()
     return {
+        "frontend_dir": FRONTEND_DIR,
+        "exists": os.path.exists(FRONTEND_DIR),
+        "files": os.listdir(os.path.dirname(BASE_DIR)) if os.path.exists(os.path.dirname(BASE_DIR)) else [],
         "name": "Olive Yield Forecasting API",
         "version": "2.0.0",
         "available_models": list(AVAILABLE_MODELS.keys()),
