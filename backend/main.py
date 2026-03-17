@@ -42,8 +42,8 @@ AVAILABLE_MODELS = {
     "simple": {
         "name": "Statistical Model",
         "file": "olive_model_simple.pkl",
-        "description": "Best statistical model (R²=0.94, p=0.0006)",
-        "features": ["Temp_May", "Temp_Jul", "Rain_Dec"]
+        "description": "Best statistical model (R²=0.69, p=0.00003)",
+        "features": ["Rain_Jan", "Clouds_Sep", "Clouds_Oct"]
     }
 }
 
@@ -97,15 +97,15 @@ def predict_simple(weather_year, olives):
     """Use simple statistical model"""
     w = weather[weather["year"] == weather_year]
     
-    # New model features: Temp_May, Temp_Jul, Rain_Dec
-    may_temp = w[w["month"] == 5]["Avg_Temp"].mean()
-    jul_temp = w[w["month"] == 7]["Avg_Temp"].mean()
-    dec_rain = w[w["month"] == 12]["Rain"].sum()
+    # New model features: Rain_Jan, Clouds_Sep, Clouds_Oct
+    jan_rain = w[w["month"] == 1]["Rain"].sum()
+    sep_clouds = w[w["month"] == 9]["Clouds"].mean()
+    oct_clouds = w[w["month"] == 10]["Clouds"].mean()
     
     # Fallback to means
-    if pd.isna(may_temp): may_temp = weather[weather["month"] == 5]["Avg_Temp"].mean()
-    if pd.isna(jul_temp): jul_temp = weather[weather["month"] == 7]["Avg_Temp"].mean()
-    if pd.isna(dec_rain): dec_rain = weather[weather["month"] == 12]["Rain"].sum()
+    if pd.isna(jan_rain): jan_rain = weather[weather["month"] == 1]["Rain"].sum()
+    if pd.isna(sep_clouds): sep_clouds = weather[weather["month"] == 9]["Clouds"].mean()
+    if pd.isna(oct_clouds): oct_clouds = weather[weather["month"] == 10]["Clouds"].mean()
     
     model_path = os.path.join(DATA_DIR, "olive_model_simple.pkl")
     if os.path.exists(model_path):
@@ -113,14 +113,14 @@ def predict_simple(weather_year, olives):
             m = pickle.load(f)
         
         X = pd.DataFrame({
-            "Temp_May": [may_temp],
-            "Temp_Jul": [jul_temp],
-            "Rain_Dec": [dec_rain]
+            "Rain_Jan": [jan_rain],
+            "Clouds_Sep": [sep_clouds],
+            "Clouds_Oct": [oct_clouds]
         }).fillna(0)
         
         X_scaled = m["scaler"].transform(X)
         pred = max(0, m["model"].predict(X_scaled)[0])
-        cv_mae = m.get("cv_mae", 200)
+        cv_mae = m.get("cv_mae", 300)
         r2 = m.get("adj_r2", 0.94)
     else:
         pred = 950
@@ -134,7 +134,7 @@ def predict_simple(weather_year, olives):
         "cv_mae": cv_mae,
         "r2": r2,
         "model_name": "Statistical Model (Simple)",
-        "features": {"temp_may": may_temp, "temp_jul": jul_temp, "rain_dec": dec_rain}
+        "features": {"rain_jan": jan_rain, "clouds_sep": sep_clouds, "clouds_oct": oct_clouds}
     }
 
 def predict_complex(weather_year, yearly):
