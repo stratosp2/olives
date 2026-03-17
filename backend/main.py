@@ -284,13 +284,17 @@ def get_current_weather():
         latest = weather_sorted.iloc[0]
         latest_date = latest["Date"]
         
+        wind_val = latest.get("Avg_Wind", 0)
+        if pd.isna(wind_val):
+            wind_val = 0
+        
         return {
             "date": str(latest_date)[:10] if hasattr(latest_date, 'strftime') else str(latest_date)[:10],
             "temperature": round(float(latest["Avg_Temp"]), 1),
             "humidity": 0,
             "clouds": round(float(latest["Clouds"]), 1),
             "rain": round(float(latest["Rain"]), 1),
-            "wind": round(float(latest.get("Avg_Wind", 0) or 0), 1),
+            "wind": round(float(wind_val), 1),
             "updated": str(latest_date)[:10]
         }
     except Exception as e:
