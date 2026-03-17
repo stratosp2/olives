@@ -54,6 +54,10 @@ def load_olive_data():
     olives["trees"] = olives["trees"].astype(int)
     return olives
 
+# Weather cache
+weather_cache = {"data": None, "timestamp": 0}
+CACHE_TTL_SECONDS = 3600  # 1 hour
+
 def load_weather_data():
     weather = pd.read_csv(os.path.join(DATA_DIR, "Nea_Zichni_scrapped_data_full.csv"))
     weather["Date"] = pd.to_datetime(weather["Date"])
@@ -285,7 +289,17 @@ def get_dashboard(model: str = Query("simple")):
 
 @app.get("/api/weather/current")
 def get_current_weather():
-    """Get weather - tries API, falls back to cached"""
+    """Get weather - uses cache, only refreshes once per hour"""
+    global weather_cache
+    import time
+    
+    current_time = time.time()
+    
+    # Check if cache is still valid
+    if weather_cache["data"] and (current_time - weather_cache["timestamp"]) < CACHE_TTL_SECONDS:
+        return weather_cache["data"]
+    
+    # Try to fetch fresh data
     try:
         import requests
         LAT = 40.7333
@@ -303,12 +317,12 @@ def get_current_weather():
         data = resp.json()
         
         if "current" not in data:
-            raise Exception("No current data: " + str(data.get("error", "")))
+            raise Exception("No current data")
         
         current = data.get("current", {})
         time_val = current.get("time", "")
         
-        return {
+        result = {
             "date": time_val[:10] if time_val else "",
             "temperature": round(float(current.get("temperature_2m", 0) or 0), 1),
             "humidity": int(current.get("relative_humidity_2m", 0) or 0),
@@ -317,8 +331,18 @@ def get_current_weather():
             "wind": round(float(current.get("wind_speed_10m", 0) or 0), 1),
             "updated": time_val[:16] if time_val else ""
         }
+        
+        # Cache the result
+        weather_cache = {"data": result, "timestamp": current_time}
+        return result
+        
     except Exception as e:
-        # Fallback to cached data
+        # Return cached data if available, otherwise fallback to file
+        if weather_cache["data"]:
+            weather_cache["data"]["updated"] = "cached (error)"
+            return weather_cache["data"]
+        
+        # Fallback to file
         try:
             weather_sorted = weather.sort_values("Date", ascending=False)
             latest = weather_sorted.iloc[0]
@@ -333,7 +357,7 @@ def get_current_weather():
                 "clouds": round(float(latest["Clouds"]), 1),
                 "rain": round(float(latest["Rain"]), 1),
                 "wind": round(float(wind_val), 1),
-                "updated": str(latest_date)[:10] + " (cached)"
+                "updated": str(latest_date)[:10] + " (file)"
             }
         except:
             return {"error": str(e), "fallback": "failed"}
