@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pkl
+# EXCEPT the simple model we need:
+!olive_model_simple.pkl
+.Python
+venv/
+env/
+.venv
+*.log
+.DS_Store
+._*
+*.aux
+*.out
+*.synctex.gz
+*.pdf
+*.png
+.xlsx
+.RData
+.Rhistory
