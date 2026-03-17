@@ -15,7 +15,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(os.path.dirname(BASE_DIR))
-FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
+FRONTEND_DIR = os.path.join(DATA_DIR, "frontend")
 
 import numpy as np
 
