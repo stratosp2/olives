@@ -278,27 +278,52 @@ def get_dashboard(model: str = Query("simple")):
 
 @app.get("/api/weather/current")
 def get_current_weather():
-    """Get current weather from latest cached data"""
+    """Get REAL-TIME weather from Open-Meteo API"""
     try:
-        weather_sorted = weather.sort_values("Date", ascending=False)
-        latest = weather_sorted.iloc[0]
-        latest_date = latest["Date"]
+        import requests
+        LAT = 40.7333
+        LON = 22.8333
         
-        wind_val = latest.get("Avg_Wind", 0)
-        if pd.isna(wind_val):
-            wind_val = 0
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": LAT,
+            "longitude": LON,
+            "current": "temperature_2m,relative_humidity_2m,precipitation,rain,showers,snowfall,cloud_cover,wind_speed_10m,wind_direction_10m",
+            "timezone": "Europe/Athens"
+        }
+        
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+        current = data.get("current", {})
         
         return {
-            "date": str(latest_date)[:10] if hasattr(latest_date, 'strftime') else str(latest_date)[:10],
-            "temperature": round(float(latest["Avg_Temp"]), 1),
-            "humidity": 0,
-            "clouds": round(float(latest["Clouds"]), 1),
-            "rain": round(float(latest["Rain"]), 1),
-            "wind": round(float(wind_val), 1),
-            "updated": str(latest_date)[:10]
+            "date": data.get("current", {}).get("time", "")[:10],
+            "temperature": round(current.get("temperature_2m", 0), 1),
+            "humidity": current.get("relative_humidity_2m", 0),
+            "clouds": current.get("cloud_cover", 0),
+            "rain": current.get("precipitation", 0),
+            "wind": current.get("wind_speed_10m", 0),
+            "updated": data.get("current", {}).get("time", "")[:16]
         }
     except Exception as e:
-        return {"error": str(e), "temperature": 0, "humidity": 0, "clouds": 0, "rain": 0, "wind": 0}
+        try:
+            weather_sorted = weather.sort_values("Date", ascending=False)
+            latest = weather_sorted.iloc[0]
+            latest_date = latest["Date"]
+            wind_val = latest.get("Avg_Wind", 0)
+            if pd.isna(wind_val):
+                wind_val = 0
+            return {
+                "date": str(latest_date)[:10],
+                "temperature": round(float(latest["Avg_Temp"]), 1),
+                "humidity": 0,
+                "clouds": round(float(latest["Clouds"]), 1),
+                "rain": round(float(latest["Rain"]), 1),
+                "wind": round(float(wind_val), 1),
+                "updated": str(latest_date)[:10] + " (cached)"
+            }
+        except:
+            return {"error": str(e), "temperature": 0, "humidity": 0, "clouds": 0, "rain": 0, "wind": 0}
 
 @app.get("/api/weather/update")
 def update_weather():
