@@ -5,6 +5,7 @@ FastAPI Backend for Olive Yield Forecasting - Multi-Model Support
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 import pandas as pd
 import pickle
 import os
@@ -13,6 +14,7 @@ app = FastAPI(title="Olive Yield Forecasting API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 DATA_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIR = os.path.join(DATA_DIR, "frontend")
 
 import numpy as np
 
@@ -175,6 +177,19 @@ yearly_features = create_features(weather)
 
 @app.get("/")
 def root():
+    return {
+        "name": "Olive Yield Forecasting API",
+        "version": "2.0.0",
+        "available_models": list(AVAILABLE_MODELS.keys()),
+        "endpoints": ["/", "/api/prediction", "/api/history", "/api/models", "/api/dashboard"]
+    }
+
+@app.get("/", response_class=HTMLResponse)
+def root():
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
     return {
         "name": "Olive Yield Forecasting API",
         "version": "2.0.0",
