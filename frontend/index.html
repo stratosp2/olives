@@ -130,7 +130,7 @@
         </footer>
     </div>
     <script>
-        const API = window.location.origin;
+        const API = window.location.port === '8002' ? 'http://localhost:8001' : window.location.origin;
         let chartOlives, chartOil, chartRatio, chartTrees;
         const chartColors = { accent: '#65d685', gold: '#f5c842', olive: '#8fae6d', blue: '#4a9eff', text: '#8b98a5', grid: '#2d3f52' };
         
