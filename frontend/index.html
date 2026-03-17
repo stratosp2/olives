@@ -80,12 +80,13 @@
         <div class="prediction-hero" id="prediction"><div style="padding:40px;">Φόρτωση δεδομένων...</div></div>
         
         <div class="card" id="currentWeatherCard">
-            <div class="card-title">Τρέχων Καιρός</div>
+            <div class="card-title">Τρέχων Καιρός (Νέα Ζίχνη)</div>
             <div class="current-weather" id="currentWeather">
                 <div class="item"><div class="value" id="curTemp">-</div><div class="label">🌡️ Θερμοκρασία</div></div>
                 <div class="item"><div class="value" id="curClouds">-</div><div class="label">☁️ Συννεφιά</div></div>
                 <div class="item"><div class="value" id="curRain">-</div><div class="label">🌧️ Βροχή</div></div>
-                <div class="item"><div class="value" id="curSun">-</div><div class="label">☀️ Ώρες Ηλιοφάνειας</div></div>
+                <div class="item"><div class="value" id="curHumidity">-</div><div class="label">💧 Υγρασία</div></div>
+                <div class="item"><div class="value" id="curWind">-</div><div class="label">💨 Άνεμος</div></div>
             </div>
             <div class="last-update" id="lastUpdate">Ενημέρωση: -</div>
         </div>
@@ -183,8 +184,9 @@
                     document.getElementById('curTemp').textContent = current.temperature + '°C';
                     document.getElementById('curClouds').textContent = current.clouds + '%';
                     document.getElementById('curRain').textContent = current.rain + ' mm';
-                    document.getElementById('curSun').textContent = current.sun_hours + ' h';
-                    document.getElementById('lastUpdate').textContent = '📅 Τελευταία ενημέρωση: ' + current.date;
+                    document.getElementById('curHumidity').textContent = current.humidity + '%';
+                    document.getElementById('curWind').textContent = current.wind + ' km/h';
+                    document.getElementById('lastUpdate').textContent = '📅 Ενημέρωση: ' + (current.updated || current.date);
                 }
                 
                 if (hist.data) { 
