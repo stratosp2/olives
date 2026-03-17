@@ -192,17 +192,21 @@ def root():
 @app.get("/", response_class=HTMLResponse)
 def root():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse("/static/index.html")
-    return {
-        "error": "Frontend not found",
-        "frontend_dir": FRONTEND_DIR,
-        "exists": os.path.exists(FRONTEND_DIR),
-        "name": "Olive Yield Forecasting API",
-        "version": "2.0.0",
-        "available_models": list(AVAILABLE_MODELS.keys()),
-        "endpoints": ["/api/prediction", "/api/history", "/api/models", "/api/dashboard"]
-    }
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return {
+            "error": str(e),
+            "frontend_dir": FRONTEND_DIR,
+            "exists": os.path.exists(FRONTEND_DIR),
+            "files": os.listdir(DATA_DIR) if os.path.exists(DATA_DIR) else [],
+            "base_dir": BASE_DIR,
+            "name": "Olive Yield Forecasting API",
+            "version": "2.0.0",
+            "available_models": list(AVAILABLE_MODELS.keys()),
+            "endpoints": ["/api/prediction", "/api/history", "/api/models", "/api/dashboard"]
+        }
 
 @app.get("/api/models")
 def list_models():
