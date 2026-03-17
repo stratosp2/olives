@@ -276,6 +276,25 @@ def get_dashboard(model: str = Query("simple")):
         }
     }
 
+@app.get("/api/weather/current")
+def get_current_weather():
+    """Get current weather from latest data"""
+    weather_sorted = weather.sort_values("Date", ascending=False)
+    latest = weather_sorted.iloc[0]
+    latest_date = latest["Date"]
+    
+    current = {
+        "date": latest_date.strftime("%Y-%m-%d") if hasattr(latest_date, 'strftime') else str(latest_date)[:10],
+        "temperature": round(float(latest["Avg_Temp"]), 1),
+        "temp_max": round(float(latest["Max_Temp"]), 1),
+        "temp_min": round(float(latest["Min_Temp"]), 1),
+        "clouds": round(float(latest["Clouds"]), 1),
+        "rain": round(float(latest["Rain"]), 1),
+        "sun_hours": round(float(latest["Sun_Hours"]), 1)
+    }
+    
+    return to_native(current)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
