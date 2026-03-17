@@ -154,6 +154,10 @@
         
         async function loadData() {
             try {
+                document.getElementById('prediction').innerHTML = '<div style="padding:40px;">Ενημέρωση καιρού...</div>';
+                
+                await fetch(API + '/api/weather/update').catch(() => {});
+                
                 const [dash, hist, current] = await Promise.all([
                     fetch(API + '/api/dashboard').then(r => r.json()), 
                     fetch(API + '/api/history').then(r => r.json()),
