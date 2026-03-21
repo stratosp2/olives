@@ -295,89 +295,89 @@
             chartTrees.update();
         }
         
-        async function fetchWeather() {
+        let weatherCache = null;
+        
+        async function fetchAllWeather() {
+            if (weatherCache) return weatherCache;
+            
             try {
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m&timezone=Europe/Athens');
+                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code&timezone=Europe/Athens&forecast_days=7');
                 const data = await resp.json();
-                if (data.current) {
-                    return {
-                        temperature: Math.round(data.current.temperature_2m * 10) / 10,
-                        humidity: data.current.relative_humidity_2m || 0,
-                        clouds: data.current.cloud_cover || 0,
-                        rain: data.current.precipitation || 0,
-                        wind: Math.round(data.current.wind_speed_10m * 10) / 10,
-                        updated: data.current.time ? data.current.time.replace('T', ' ').substring(0, 16) : 'live'
-                    };
-                }
+                
+                const daily = data.daily || {};
+                const dates = daily.time || [];
+                const records = dates.map((date, i) => ({
+                    month: parseInt(date.substring(5, 7)),
+                    avgTemp: daily.temperature_2m_mean?.[i] || 0,
+                    maxTemp: daily.temperature_2m_max?.[i] || 0,
+                    minTemp: daily.temperature_2m_min?.[i] || 0,
+                    rain: daily.precipitation_sum?.[i] || 0,
+                    clouds: daily.cloud_cover_mean?.[i] || 50,
+                    humidity: 100 - (daily.cloud_cover_mean?.[i] || 50)
+                }));
+                
+                weatherCache = {
+                    current: {
+                        temperature: Math.round((data.current?.temperature_2m || 0) * 10) / 10,
+                        humidity: data.current?.relative_humidity_2m || 0,
+                        clouds: data.current?.cloud_cover || 0,
+                        rain: data.current?.precipitation || 0,
+                        updated: data.current?.time ? data.current.time.replace('T', ' ').substring(0, 16) : 'live'
+                    },
+                    records: records,
+                    daily: daily
+                };
+                return weatherCache;
             } catch(e) {
                 console.log('Weather fetch error:', e);
             }
             return null;
         }
         
-        async function fetchForecast() {
-            try {
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code&timezone=Europe/Athens&forecast_days=7');
-                const data = await resp.json();
-                const daily = data.daily || {};
-                const dates = daily.time || [];
-                
-                if (dates.length === 0) return;
-                
-                const dayNames = ['Κυρ', 'Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ', 'Σάβ'];
-                const weatherIcons = {
-                    0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
-                    45: '🌫️', 48: '🌫️', 51: '🌧️', 53: '🌧️', 55: '🌧️',
-                    61: '🌧️', 63: '🌧️', 65: '🌧️', 71: '🌨️', 73: '🌨️', 75: '🌨️',
-                    80: '🌦️', 81: '🌦️', 82: '🌦️', 95: '⛈️', 96: '⛈️', 99: '⛈️'
-                };
-                
-                let html = '';
-                const today = new Date();
-                
-                for (let i = 0; i < dates.length; i++) {
-                    const date = new Date(dates[i].replace(/-/g, '/'));
-                    const dayName = i === 0 ? 'Σήμερα' : dayNames[date.getDay()];
-                    const icon = weatherIcons[daily.weather_code?.[i]] || '🌤️';
-                    const maxTemp = Math.round(daily.temperature_2m_max?.[i] || 0);
-                    const minTemp = Math.round(daily.temperature_2m_min?.[i] || 0);
-                    const rain = daily.precipitation_sum?.[i] || 0;
-                    
-                    html += `
-                        <div class="forecast-day">
-                            <div class="forecast-day-name">${dayName}</div>
-                            <div class="forecast-day-icon">${icon}</div>
-                            <div class="forecast-day-temp">${maxTemp}°</div>
-                            <div class="forecast-day-rain">${rain > 0 ? rain + 'mm' : ''}</div>
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('forecastGrid').innerHTML = html;
-            } catch(e) {
-                console.log('Forecast fetch error:', e);
-            }
-        }
-        
         async function loadData() {
             try {
+                weatherCache = null;
                 document.getElementById('prediction').innerHTML = '<div style="padding:40px;">Ενημέρωση καιρού...</div>';
                 
                 await fetch(API + '/api/weather/update').catch(() => {});
                 
-                // Fetch weather directly from Open-Meteo (browser-side)
-                fetchWeather().then(current => {
-                    if (current) {
-                        document.getElementById('curTemp').textContent = current.temperature;
-                        document.getElementById('curClouds').textContent = current.clouds;
-                        document.getElementById('curRain').textContent = current.rain;
-                        document.getElementById('curHumidity').textContent = current.humidity;
-                        document.getElementById('lastUpdate').textContent = '📅 ' + current.updated;
-                    }
-                });
+                const weather = await fetchAllWeather();
                 
-                // Fetch 7-day forecast
-                fetchForecast();
+                if (weather) {
+                    document.getElementById('curTemp').textContent = weather.current.temperature;
+                    document.getElementById('curClouds').textContent = weather.current.clouds;
+                    document.getElementById('curRain').textContent = weather.current.rain;
+                    document.getElementById('curHumidity').textContent = weather.current.humidity;
+                    document.getElementById('lastUpdate').textContent = '📅 ' + weather.current.updated;
+                    
+                    const daily = weather.daily;
+                    const dayNames = ['Κυρ', 'Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ', 'Σάβ'];
+                    const weatherIcons = {
+                        0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+                        45: '🌫️', 48: '🌫️', 51: '🌧️', 53: '🌧️', 55: '🌧️',
+                        61: '🌧️', 63: '🌧️', 65: '🌧️', 71: '🌨️', 73: '🌨️', 75: '🌨️',
+                        80: '🌦️', 81: '🌦️', 82: '🌦️', 95: '⛈️', 96: '⛈️', 99: '⛈️'
+                    };
+                    
+                    let html = '';
+                    const dates = daily.time || [];
+                    for (let i = 0; i < Math.min(dates.length, 7); i++) {
+                        const icon = weatherIcons[daily.weather_code?.[i]] || '🌤️';
+                        const maxTemp = Math.round(daily.temperature_2m_max?.[i] || 0);
+                        const rain = daily.precipitation_sum?.[i] || 0;
+                        html += `
+                            <div class="forecast-day">
+                                <div class="forecast-day-name">${i === 0 ? 'Σήμερα' : dayNames[new Date(dates[i].replace(/-/g, '/')).getDay()]}</div>
+                                <div class="forecast-day-icon">${icon}</div>
+                                <div class="forecast-day-temp">${maxTemp}°</div>
+                                <div class="forecast-day-rain">${rain > 0 ? rain + 'mm' : ''}</div>
+                            </div>
+                        `;
+                    }
+                    document.getElementById('forecastGrid').innerHTML = html;
+                    
+                    loadDiseaseAndFoliarData(weather.records);
+                }
                 
                 const [dash, hist] = await Promise.all([
                     fetch(API + '/api/dashboard').then(r => r.json()), 
@@ -403,33 +403,14 @@
                     updateCharts(hist.data); 
                     document.querySelector('#historyTable tbody').innerHTML = hist.data.slice(-15).reverse().map(d => `<tr><td class="year-col">${d.year}</td><td>${d.trees||'-'}</td><td>${d.olives||'-'}</td><td>${d.oil||'-'}</td><td>${d.ratio?d.ratio.toFixed(1)+'%':'-'}</td></tr>`).join(''); 
                 }
-                
-                // Fetch disease risk and foliar recommendations
-                loadDiseaseAndFoliarData();
             } catch(e) { 
                 document.getElementById('prediction').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);">⚠️ Σφάλμα σύνδεσης με το API</div>'; 
             }
         }
         
-        async function loadDiseaseAndFoliarData() {
+        async function loadDiseaseAndFoliarData(records) {
             try {
-                // Fetch weather directly from Open-Meteo (browser-side)
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&past_days=30&forecast_days=7&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean&timezone=Europe/Athens');
-                const data = await resp.json();
-                const daily = data.daily || {};
-                const dates = daily.time || [];
-                
-                if (dates.length === 0) return;
-                
-                const records = dates.map((date, i) => ({
-                    month: parseInt(date.substring(5, 7)),
-                    avgTemp: daily.temperature_2m_mean[i],
-                    maxTemp: daily.temperature_2m_max[i],
-                    minTemp: daily.temperature_2m_min[i],
-                    rain: daily.precipitation_sum[i] || 0,
-                    clouds: daily.cloud_cover_mean[i] || 50,
-                    humidity: 100 - (daily.cloud_cover_mean[i] || 50)
-                }));
+                if (!records || records.length === 0) return;
                 
                 // Calculate disease risk
                 const diseaseRisk = calculateDiseaseRisk(records);
