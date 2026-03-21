@@ -36,11 +36,17 @@
         .unit { font-size: 20px; color: var(--text-secondary); margin-top: 8px; }
         .confidence { font-size: 13px; color: var(--text-secondary); margin-top: 16px; background: var(--bg); padding: 8px 16px; border-radius: 20px; display: inline-block; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .grid-hero { display: grid; grid-template-columns: 1.2fr 1fr 1.5fr; gap: 16px; margin-bottom: 20px; }
         .stat { text-align: center; padding: 20px; background: var(--surface-light); border-radius: 10px; border: 1px solid var(--border); }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
         .stat-icon { font-size: 24px; margin-bottom: 8px; }
-        .current-weather { display: flex; justify-content: center; gap: 40px; padding: 20px 0; flex-wrap: wrap; }
+        .current-weather { display: flex; justify-content: center; gap: 20px; padding: 12px 0; flex-wrap: wrap; }
+        .current-weather-compact { display: flex; justify-content: space-around; gap: 8px; }
+        .current-weather-compact .item { text-align: center; padding: 8px; }
+        .current-weather-compact .value { font-size: 22px; font-weight: 600; color: var(--accent-gold); }
+        .current-weather-compact .label { font-size: 16px; }
         .current-weather .item { text-align: center; }
         .current-weather .value { font-size: 28px; font-weight: 600; color: var(--accent-gold); }
         .current-weather .label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
@@ -116,6 +122,11 @@
         .forecast-temp-low { font-size: 12px; color: var(--text-secondary); }
         .forecast-rain { font-size: 11px; color: #4a9eff; margin-top: 4px; }
         
+        .forecast-grid-compact { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+        .forecast-grid-compact .forecast-day { min-width: 60px; padding: 8px 4px; }
+        .forecast-grid-compact .forecast-icon { font-size: 20px; }
+        .forecast-grid-compact .forecast-temp { font-size: 14px; }
+        
         @media (max-width: 900px) { .forecast-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 600px) { .forecast-grid { grid-template-columns: repeat(2, 1fr); } }
         
@@ -127,13 +138,14 @@
         .tooltip-factor { margin: 4px 0; }
         .tooltip-factor span { color: var(--accent-gold); }
         
+        @media (max-width: 900px) { 
+            .grid-hero { grid-template-columns: 1fr; } 
+            .grid-2 { grid-template-columns: 1fr; }
+        }
         @media (max-width: 768px) { 
             .charts-grid { grid-template-columns: 1fr; } 
             .grid-3 { grid-template-columns: 1fr; } 
-            .weather-info { flex-direction: column; gap: 20px; }
-            .current-weather { flex-direction: column; gap: 20px; }
             .big-number { font-size: 48px; }
-            .timing-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -143,73 +155,69 @@
             <span class="olive-icon">🫒</span>
             <div><h1>Πρόβλεψη Παραγωγής Ελιών</h1><p class="subtitle">Ελαιοπαραγωγική Μονάδα Νέας Ζίχνης</p></div>
         </header>
-        <div class="prediction-hero" id="prediction"><div style="padding:40px;">Φόρτωση δεδομένων...</div></div>
         
-        <div class="card" id="currentWeatherCard">
-            <div class="card-title">Τρέχων Καιρός (Νέα Ζίχνη)</div>
-            <div class="current-weather" id="currentWeather">
-                <div class="item"><div class="value" id="curTemp">-</div><div class="label">🌡️ Θερμοκρασία</div></div>
-                <div class="item"><div class="value" id="curClouds">-</div><div class="label">☁️ Συννεφιά</div></div>
-                <div class="item"><div class="value" id="curRain">-</div><div class="label">🌧️ Βροχή</div></div>
-                <div class="item"><div class="value" id="curHumidity">-</div><div class="label">💧 Υγρασία</div></div>
-                <div class="item"><div class="value" id="curWind">-</div><div class="label">💨 Άνεμος</div></div>
+        <!-- Section 1: Hero - Prediction + Weather + Forecast -->
+        <div class="grid-hero">
+            <div class="card prediction-hero" id="prediction"><div style="padding:40px;">Φόρτωση...</div></div>
+            <div class="card">
+                <div class="card-title">Τρέχων Καιρός</div>
+                <div class="current-weather-compact" id="currentWeather">
+                    <div class="item"><div class="value" id="curTemp">-</div><div class="label">🌡️</div></div>
+                    <div class="item"><div class="value" id="curClouds">-</div><div class="label">☁️</div></div>
+                    <div class="item"><div class="value" id="curRain">-</div><div class="label">🌧️</div></div>
+                    <div class="item"><div class="value" id="curHumidity">-</div><div class="label">💧</div></div>
+                </div>
+                <div class="last-update" id="lastUpdate">-</div>
             </div>
-            <div class="last-update" id="lastUpdate">Ενημέρωση: -</div>
-            
-            <div id="diseaseRiskSection" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: none;">
-                <div class="card-title" style="margin-bottom: 12px;">⚠️ Κίνδυνος Ασθενειών</div>
+            <div class="card">
+                <div class="card-title">7-Ημερη Πρόβλεψη</div>
+                <div class="forecast-grid-compact" id="forecastGrid"></div>
+            </div>
+        </div>
+        
+        <!-- Section 2: Action Cards - Disease + Foliar -->
+        <div class="grid-2">
+            <div class="card" id="diseaseRiskSection" style="display:none;">
+                <div class="card-title">⚠️ Κίνδυνος Ασθενειών</div>
                 <div id="overallRiskBanner"></div>
                 <div id="diseaseRisks"></div>
             </div>
-            
-            <div id="foliarSection" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: none;">
-                <div class="card-title" style="margin-bottom: 12px;">🌿 Διαφυλλική Λίπανση</div>
+            <div class="card" id="foliarSection" style="display:none;">
+                <div class="card-title">🌿 Διαφυλλική Λίπανση</div>
                 <div id="foliarRecommendations"></div>
             </div>
         </div>
         
-        <div class="card" id="forecastCard">
-            <div class="card-title">7-Ημερη Πρόβλεψη</div>
-            <div class="forecast-grid" id="forecastGrid"></div>
-        </div>
-
+        <!-- Section 3: Stats -->
         <div class="grid-3">
-            <div class="card"><div class="card-title">Τελευταία Σοδειά</div><div class="stat"><div class="stat-icon">🌿</div><div class="stat-value" id="lastHarvest">-</div><div class="stat-label" id="lastYear">-</div></div></div>
-            <div class="card"><div class="card-title">Μέσος Όρος (16 έτη)</div><div class="stat"><div class="stat-icon">📊</div><div class="stat-value" id="avgHarvest">-</div><div class="stat-label">κιλά/έτος</div></div></div>
-            <div class="card"><div class="card-title">Δέντρα</div><div class="stat"><div class="stat-icon">🌳</div><div class="stat-value" id="treeCount">-</div><div class="stat-label" id="treeYear">ελιές</div></div></div>
+            <div class="card"><div class="stat"><div class="stat-icon">🌿</div><div class="stat-value" id="lastHarvest">-</div><div class="stat-label" id="lastYear">-</div></div></div>
+            <div class="card"><div class="stat"><div class="stat-icon">📊</div><div class="stat-value" id="avgHarvest">-</div><div class="stat-label">κιλά/έτος (μ.ο.)</div></div></div>
+            <div class="card"><div class="stat"><div class="stat-icon">🌳</div><div class="stat-value" id="treeCount">-</div><div class="stat-label">ελιές</div></div></div>
         </div>
+        
+        <!-- Section 4: Charts -->
         <div class="charts-grid">
             <div class="card"><div class="card-title">Παραγωγή Ελιών (kg)</div><div class="chart-container"><canvas id="chartOlives"></canvas></div></div>
             <div class="card"><div class="card-title">Παραγωγή Λαδιού (kg)</div><div class="chart-container"><canvas id="chartOil"></canvas></div></div>
-            <div class="card"><div class="card-title">Απόδοση (λάδι/ελιές)</div><div class="chart-container"><canvas id="chartRatio"></canvas></div></div>
-            <div class="card"><div class="card-title">Δέντρα & Απόδοση ανά Δέντρο</div><div class="chart-container"><canvas id="chartTrees"></canvas></div></div>
+            <div class="card"><div class="card-title">Απόδοση %</div><div class="chart-container"><canvas id="chartRatio"></canvas></div></div>
+            <div class="card"><div class="card-title">Δέντρα & Kg/Δέντρο</div><div class="chart-container"><canvas id="chartTrees"></canvas></div></div>
         </div>
-        <div class="card">
-            <div class="card-title">Καιρικά Δεδομένα (Έτος -1)</div>
-            <div class="weather-info">
-                <div class="weather-item"><div class="value" id="augClouds">~19%</div><div class="label">☁️ Συννεφιά Αυγούστου</div></div>
-                <div class="weather-item"><div class="value" id="decClouds">~53%</div><div class="label">☁️ Συννεφιά Δεκεμβρίου</div></div>
-                <div class="weather-item"><div class="value" id="julTemp">~29°C</div><div class="label">🌡️ Θερμοκρασία Ιουλίου</div></div>
-            </div>
-            <div class="timing-note">📅 Η πρόβλεψη βασίζεται στα καιρικά δεδομένα του προηγούμενου έτους (καλοκαίρι-φθινόπωρο).</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Στατιστικό Μοντέλο</div>
-            <div class="timing-note" style="margin-top:0">
-                <strong>🔬 Μέθοδος:</strong> Απλή Γραμμική Παλινδρόμηση<br>
-                <strong>📈 Μεταβλητές:</strong> Συννεφιά Αυγούστου, Δεκεμβρίου, Θερμοκρασία Ιουλίου<br>
-                <strong>📊 Προσαρμοσμένο R²:</strong> 0.62 · <strong>p-value:</strong> 0.002<br>
-                <strong>⚠️ Τυπικό σφάλμα:</strong> ~822 kg
+        
+        <!-- Section 5: Footer Info -->
+        <div class="card" style="text-align:center;">
+            <div class="timing-note" style="display:inline-block;text-align:left;">
+                <strong>🔬 Μοντέλο:</strong> R²=0.69, p=0.00003 · 
+                <strong>⚠️ Σφάλμα:</strong> ±600 kg · 
+                <button class="btn" onclick="loadData()" style="margin-left:16px;">↻ Ενημέρωση</button>
             </div>
         </div>
+        
         <div class="card">
-            <div class="card-title">Ιστορικά Δεδομένα</div>
-            <table id="historyTable"><thead><tr><th>Έτος</th><th>Δέντρα</th><th>Ελιές</th><th>Λάδι</th><th>Απόδοση</th></tr></thead><tbody></tbody></table>
+            <div class="card-title">Ιστορικό</div>
+            <table id="historyTable"><thead><tr><th>Έτος</th><th>Δέντρα</th><th>Ελιές</th><th>Λάδι</th><th>%</th></tr></thead><tbody></tbody></table>
         </div>
-        <footer>
-            <button class="btn" onclick="loadData()">↻ Ενημέρωση Δεδομένων</button>
-            <p style="margin-top:20px">🫒 Ελιές Νέας Ζίχνης</p>
-        </footer>
+        
+        <footer>🫒 Ελιές Νέας Ζίχνης</footer>
     </div>
     <script>
         const API = window.location.port === '8002' ? 'http://localhost:8001' : window.location.origin;
@@ -217,11 +225,74 @@
         const chartColors = { accent: '#65d685', gold: '#f5c842', olive: '#8fae6d', blue: '#4a9eff', text: '#8b98a5', grid: '#2d3f52' };
         
         function initCharts() {
-            const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text, maxRotation: 45 } }, y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } } } };
-            chartOlives = new Chart(document.getElementById('chartOlives'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: chartColors.accent, borderRadius: 4 }] }, options: common });
-            chartOil = new Chart(document.getElementById('chartOil'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: chartColors.gold, borderRadius: 4 }] }, options: common });
-            chartRatio = new Chart(document.getElementById('chartRatio'), { type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: chartColors.blue, backgroundColor: 'rgba(74,158,255,0.15)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 4, pointBackgroundColor: chartColors.blue }] }, options: { ...common, scales: { ...common.scales, y: { ...common.scales.y, min: 0, max: 35 } } } });
-            chartTrees = new Chart(document.getElementById('chartTrees'), { type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: chartColors.text, backgroundColor: 'transparent', label: 'Δέντρα', yAxisID: 'y', tension: 0.3, borderWidth: 2, borderDash: [5,5] }, { data: [], borderColor: chartColors.accent, backgroundColor: 'transparent', label: 'Kg/Δέντρο', yAxisID: 'y1', tension: 0.3, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: chartColors.text } } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text } }, y: { type: 'linear', position: 'left', beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } }, y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: chartColors.text } } } } });
+            const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: chartColors.text, usePointStyle: true, pointStyle: 'line' } } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text, maxRotation: 45 } }, y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } } } };
+            
+            chartOlives = new Chart(document.getElementById('chartOlives'), {
+                type: 'bar',
+                data: { labels: [], datasets: [
+                    { data: [], backgroundColor: chartColors.accent, borderRadius: 4, label: 'Ελιές (kg)' },
+                    { type: 'line', data: [], borderColor: chartColors.olive, borderDash: [5, 5], borderWidth: 2, pointRadius: 0, label: 'Μ.Ο.' }
+                ]},
+                options: { ...common, plugins: { ...common.plugins, annotation: undefined } }
+            });
+            
+            chartOil = new Chart(document.getElementById('chartOil'), {
+                type: 'bar',
+                data: { labels: [], datasets: [
+                    { data: [], backgroundColor: chartColors.gold, borderRadius: 4, label: 'Λάδι (kg)' },
+                    { type: 'line', data: [], borderColor: chartColors.olive, borderDash: [5, 5], borderWidth: 2, pointRadius: 0, label: 'Μ.Ο.' }
+                ]},
+                options: common
+            });
+            
+            chartRatio = new Chart(document.getElementById('chartRatio'), {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { data: [], borderColor: chartColors.blue, backgroundColor: 'rgba(74,158,255,0.15)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 4, pointBackgroundColor: chartColors.blue, label: 'Απόδοση %' },
+                    { type: 'line', data: [], borderColor: chartColors.olive, borderDash: [5, 5], borderWidth: 2, pointRadius: 0, label: 'Μ.Ο.' }
+                ]},
+                options: { ...common, scales: { ...common.scales, y: { ...common.scales.y, min: 0 } } }
+            });
+            
+            chartTrees = new Chart(document.getElementById('chartTrees'), {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { data: [], borderColor: chartColors.text, backgroundColor: 'transparent', label: 'Δέντρα', tension: 0.3, borderWidth: 2, yAxisID: 'y' },
+                    { data: [], borderColor: chartColors.accent, backgroundColor: 'transparent', label: 'Kg/Δέντρο', tension: 0.3, borderWidth: 2, yAxisID: 'y1' }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: chartColors.text } } }, scales: { x: { grid: { display: false }, ticks: { color: chartColors.text } }, y: { type: 'linear', position: 'left', beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } }, y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: chartColors.text } } } }
+            });
+        }
+        
+        function updateCharts(data) {
+            const years = data.map(d => d.year);
+            const olives = data.map(d => d.olives || 0);
+            const oil = data.map(d => d.oil || 0);
+            const ratio = data.map(d => d.ratio || 0);
+            
+            const avgOlives = olives.reduce((a,b) => a+b, 0) / olives.length;
+            const avgOil = oil.reduce((a,b) => a+b, 0) / oil.length;
+            const avgRatio = ratio.reduce((a,b) => a+b, 0) / ratio.length;
+            
+            chartOlives.data.labels = years;
+            chartOlives.data.datasets[0].data = olives;
+            chartOlives.data.datasets[1].data = years.map(() => Math.round(avgOlives));
+            chartOlives.update();
+            
+            chartOil.data.labels = years;
+            chartOil.data.datasets[0].data = oil;
+            chartOil.data.datasets[1].data = years.map(() => Math.round(avgOil));
+            chartOil.update();
+            
+            chartRatio.data.labels = years;
+            chartRatio.data.datasets[0].data = ratio;
+            chartRatio.data.datasets[1].data = years.map(() => avgRatio.toFixed(1));
+            chartRatio.update();
+            
+            chartTrees.data.labels = years;
+            chartTrees.data.datasets[0].data = data.map(d => d.trees || 0);
+            chartTrees.data.datasets[1].data = data.map(d => d.olives && d.trees ? d.olives / d.trees : 0);
+            chartTrees.update();
         }
         
         async function fetchWeather() {
@@ -288,17 +359,6 @@
             } catch(e) {
                 console.log('Forecast fetch error:', e);
             }
-        }
-        
-        function updateCharts(data) {
-            const years = data.map(d => d.year);
-            chartOlives.data.labels = years; chartOlives.data.datasets[0].data = data.map(d => d.olives || 0); chartOlives.update();
-            chartOil.data.labels = years; chartOil.data.datasets[0].data = data.map(d => d.oil || 0); chartOil.update();
-            chartRatio.data.labels = years; chartRatio.data.datasets[0].data = data.map(d => d.ratio || 0); chartRatio.update();
-            chartTrees.data.labels = years;
-            chartTrees.data.datasets[0].data = data.map(d => d.trees || 0);
-            chartTrees.data.datasets[1].data = data.map(d => d.olives && d.trees ? d.olives / d.trees : 0);
-            chartTrees.update();
         }
         
         async function loadData() {
