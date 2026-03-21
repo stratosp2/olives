@@ -48,23 +48,19 @@
         .grid-hero > .card { padding: 12px; display: flex; flex-direction: column; }
         .grid-hero .card-title { margin-bottom: 8px; font-size: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
         .grid-hero .prediction-hero { justify-content: center; }
-        .stat { text-align: center; padding: 20px; background: var(--surface-light); border-radius: 10px; border: 1px solid var(--border); }
-        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
-        .stat-icon { font-size: 24px; margin-bottom: 8px; }
-        .current-weather { display: flex; justify-content: center; gap: 20px; padding: 12px 0; flex-wrap: wrap; }
-        .current-weather-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-        .current-weather-compact .item { background: var(--bg); border-radius: 8px; padding: 10px 6px; text-align: center; }
-        .current-weather-compact .value { font-size: 18px; font-weight: 700; color: var(--accent-gold); }
-        .current-weather-compact .label { font-size: 11px; color: var(--text-secondary); display: block; }
-        .current-weather .item { text-align: center; }
-        .current-weather .value { font-size: 28px; font-weight: 600; color: var(--accent-gold); }
-        .current-weather .label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-        .weather-info { display: flex; justify-content: center; gap: 40px; padding: 20px 0; border-top: 1px solid var(--border); margin-top: 24px; flex-wrap: wrap; }
-        .weather-item { text-align: center; }
-        .weather-item .value { font-size: 20px; font-weight: 600; color: var(--accent-gold); }
-        .weather-item .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
-        .timing-note { font-size: 12px; color: var(--text-secondary); padding: 12px 16px; background: var(--bg); border-radius: 8px; margin-top: 16px; border-left: 3px solid var(--accent-olive); }
+        .card-hero-title { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 1px; }
+        .weather-row { display: flex; justify-content: space-around; gap: 4px; flex: 1; align-items: center; }
+        .weather-item { display: flex; align-items: center; gap: 4px; background: var(--bg); padding: 8px 10px; border-radius: 8px; }
+        .weather-icon { font-size: 16px; }
+        .weather-val { font-size: 16px; font-weight: 700; color: var(--accent-gold); }
+        .weather-unit { font-size: 11px; color: var(--text-secondary); }
+        .last-update { font-size: 9px; color: var(--text-secondary); margin-top: 8px; text-align: center; }
+        .forecast-row { display: flex; justify-content: space-between; gap: 4px; flex: 1; align-items: center; }
+        .forecast-day { text-align: center; background: var(--bg); padding: 8px 6px; border-radius: 8px; min-width: 50px; }
+        .forecast-day-name { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+        .forecast-day-icon { font-size: 18px; }
+        .forecast-day-temp { font-size: 12px; font-weight: 600; }
+        .forecast-day-rain { font-size: 9px; color: #4a9eff; }
         .last-update { font-size: 11px; color: var(--text-secondary); margin-top: 8px; }
         .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .chart-container { position: relative; height: 240px; }
@@ -124,24 +120,7 @@
         .timing-value { font-size: 20px; font-weight: 600; color: var(--accent-gold); }
         .timing-label { font-size: 10px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
         
-        .forecast-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 12px; }
-        .forecast-day { text-align: center; padding: 12px 8px; background: var(--bg); border-radius: 8px; }
-        .forecast-date { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
-        .forecast-icon { font-size: 24px; margin-bottom: 4px; }
-        .forecast-temp { font-size: 16px; font-weight: 600; color: var(--text); }
-        .forecast-temp-low { font-size: 12px; color: var(--text-secondary); }
-        .forecast-rain { font-size: 11px; color: #4a9eff; margin-top: 4px; }
-        
-        .forecast-grid-compact { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .forecast-grid-compact .forecast-day { background: var(--bg); border-radius: 6px; padding: 8px 4px; text-align: center; }
-        .forecast-grid-compact .forecast-icon { font-size: 18px; }
-        .forecast-grid-compact .forecast-date { font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
-        .forecast-grid-compact .forecast-temp { font-size: 13px; font-weight: 600; }
-        .forecast-grid-compact .forecast-temp-low { font-size: 10px; color: var(--text-secondary); }
-        .forecast-grid-compact .forecast-rain { font-size: 9px; color: #4a9eff; }
-        
-        @media (max-width: 900px) { .forecast-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 600px) { .forecast-grid { grid-template-columns: repeat(2, 1fr); } }
+
         
         .tooltip { position: relative; cursor: help; display: inline-block; margin-left: 8px; font-size: 14px; }
         .tooltip .tooltiptext { visibility: hidden; opacity: 0; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); width: 280px; background: var(--surface-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 11px; color: var(--text); z-index: 100; box-shadow: 0 4px 12px var(--shadow); text-align: left; line-height: 1.5; transition: opacity 0.2s; }
@@ -180,19 +159,19 @@
             <div class="card prediction-hero" id="prediction" style="display:flex;flex-direction:column;justify-content:center;min-height:200px;">
                 <div style="padding:16px;">Φόρτωση...</div>
             </div>
-            <div class="card" style="padding:16px;">
-                <div class="card-title" style="margin-bottom:12px;">Τρέχων Καιρός</div>
-                <div class="current-weather-compact" id="currentWeather">
-                    <div class="item"><span class="value" id="curTemp">-</span><span class="label">°C</span></div>
-                    <div class="item"><span class="value" id="curClouds">-</span><span class="label">% ☁️</span></div>
-                    <div class="item"><span class="value" id="curRain">-</span><span class="label">mm 💧</span></div>
-                    <div class="item"><span class="value" id="curHumidity">-</span><span class="label">% 💦</span></div>
+            <div class="card card-hero">
+                <div class="card-hero-title">Τρέχων Καιρός</div>
+                <div class="weather-row">
+                    <div class="weather-item"><span class="weather-icon">🌡️</span><span class="weather-val" id="curTemp">-</span><span class="weather-unit">°C</span></div>
+                    <div class="weather-item"><span class="weather-icon">☁️</span><span class="weather-val" id="curClouds">-</span><span class="weather-unit">%</span></div>
+                    <div class="weather-item"><span class="weather-icon">💧</span><span class="weather-val" id="curRain">-</span><span class="weather-unit">mm</span></div>
+                    <div class="weather-item"><span class="weather-icon">💦</span><span class="weather-val" id="curHumidity">-</span><span class="weather-unit">%</span></div>
                 </div>
-                <div class="last-update" id="lastUpdate" style="margin-top:12px;font-size:10px;">-</div>
+                <div class="last-update" id="lastUpdate">-</div>
             </div>
-            <div class="card" style="padding:16px;">
-                <div class="card-title" style="margin-bottom:12px;">7-Ημερη Πρόβλεψη</div>
-                <div class="forecast-grid-compact" id="forecastGrid"></div>
+            <div class="card card-hero">
+                <div class="card-hero-title">7-Ημερη Πρόβλεψη</div>
+                <div class="forecast-row" id="forecastGrid"></div>
             </div>
         </div>
         
@@ -366,10 +345,10 @@
                     
                     html += `
                         <div class="forecast-day">
-                            <div class="forecast-date">${dayName}</div>
-                            <div class="forecast-icon">${icon}</div>
-                            <div>${maxTemp}° / ${minTemp}°</div>
-                            <div class="forecast-rain">${rain > 0 ? rain + 'mm' : ''}</div>
+                            <div class="forecast-day-name">${dayName}</div>
+                            <div class="forecast-day-icon">${icon}</div>
+                            <div class="forecast-day-temp">${maxTemp}°</div>
+                            <div class="forecast-day-rain">${rain > 0 ? rain + 'mm' : ''}</div>
                         </div>
                     `;
                 }
@@ -389,12 +368,11 @@
                 // Fetch weather directly from Open-Meteo (browser-side)
                 fetchWeather().then(current => {
                     if (current) {
-                        document.getElementById('curTemp').textContent = current.temperature + '°C';
-                        document.getElementById('curClouds').textContent = current.clouds + '%';
-                        document.getElementById('curRain').textContent = current.rain + ' mm';
-                        document.getElementById('curHumidity').textContent = current.humidity + '%';
-                        document.getElementById('curWind').textContent = current.wind + ' km/h';
-                        document.getElementById('lastUpdate').textContent = '📅 Ενημέρωση: ' + current.updated;
+                        document.getElementById('curTemp').textContent = current.temperature;
+                        document.getElementById('curClouds').textContent = current.clouds;
+                        document.getElementById('curRain').textContent = current.rain;
+                        document.getElementById('curHumidity').textContent = current.humidity;
+                        document.getElementById('lastUpdate').textContent = '📅 ' + current.updated;
                     }
                 });
                 
