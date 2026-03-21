@@ -299,37 +299,39 @@ def get_current_weather():
     if weather_cache["data"] and (current_time - weather_cache["timestamp"]) < CACHE_TTL_SECONDS:
         return weather_cache["data"]
     
-    # Try to fetch fresh data
+    # Try OpenWeatherMap (no API key needed for basic)
     try:
         import requests
         LAT = 40.7333
         LON = 22.8333
         
-        url = "https://api.open-meteo.com/v1/forecast"
+        url = "https://api.openweathermap.org/data/2.5/weather"
         params = {
-            "latitude": LAT,
-            "longitude": LON,
-            "current": "temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m",
-            "timezone": "Europe/Athens"
+            "lat": LAT,
+            "lon": LON,
+            "units": "metric",
+            "APPID": "demo"  # Replace with your key for higher limits
         }
         
         resp = requests.get(url, params=params, timeout=15)
         data = resp.json()
         
-        if "current" not in data:
-            raise Exception("No current data")
+        if data.get("cod") != 200:
+            raise Exception("OpenWeatherMap error: " + str(data.get("message", "")))
         
-        current = data.get("current", {})
-        time_val = current.get("time", "")
+        main = data.get("main", {})
+        wind = data.get("wind", {})
+        clouds = data.get("clouds", {})
+        rain = data.get("rain", {})
         
         result = {
-            "date": time_val[:10] if time_val else "",
-            "temperature": round(float(current.get("temperature_2m", 0) or 0), 1),
-            "humidity": int(current.get("relative_humidity_2m", 0) or 0),
-            "clouds": int(current.get("cloud_cover", 0) or 0),
-            "rain": round(float(current.get("precipitation", 0) or 0), 1),
-            "wind": round(float(current.get("wind_speed_10m", 0) or 0), 1),
-            "updated": time_val[:16] if time_val else ""
+            "date": data.get("dt", 0),
+            "temperature": round(main.get("temp", 0), 1),
+            "humidity": int(main.get("humidity", 0)),
+            "clouds": int(clouds.get("all", 0)),
+            "rain": round(rain.get("1h", rain.get("3h", 0)), 1),
+            "wind": round(wind.get("speed", 0), 1),
+            "updated": data.get("dt", 0)
         }
         
         # Cache the result
@@ -337,9 +339,9 @@ def get_current_weather():
         return result
         
     except Exception as e:
-        # Return cached data if available, otherwise fallback to file
+        # Return cached data if available
         if weather_cache["data"]:
-            weather_cache["data"]["updated"] = "cached (error)"
+            weather_cache["data"]["updated"] = "cached"
             return weather_cache["data"]
         
         # Fallback to file
