@@ -26,27 +26,35 @@
         .olive-icon { font-size: 42px; }
         h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px var(--shadow); }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px var(--shadow); }
+        .card-sm { padding: 16px; }
         .card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .card-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
-        .prediction-hero { text-align: center; padding: 48px 24px; background: linear-gradient(145deg, var(--surface) 0%, var(--surface-light) 100%); border: 1px solid var(--border); border-radius: 16px; position: relative; overflow: hidden; }
-        .prediction-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-olive), var(--accent-gold)); }
-        .year-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); color: #0f1419; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .big-number { font-size: 64px; font-weight: 700; line-height: 1.1; background: linear-gradient(135deg, var(--accent), var(--accent-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .unit { font-size: 20px; color: var(--text-secondary); margin-top: 8px; }
-        .confidence { font-size: 13px; color: var(--text-secondary); margin-top: 16px; background: var(--bg); padding: 8px 16px; border-radius: 20px; display: inline-block; }
+        .prediction-hero { text-align: center; padding: 24px 16px; background: linear-gradient(145deg, var(--surface) 0%, var(--surface-light) 100%); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+        .prediction-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-olive), var(--accent-gold)); }
+        .grid-hero .prediction-hero { padding: 16px 12px; }
+        .grid-hero .big-number { font-size: 42px; }
+        .grid-hero .unit { font-size: 14px; margin-top: 4px; }
+        .grid-hero .confidence { font-size: 11px; padding: 4px 10px; margin-top: 8px; }
+        .year-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); color: #0f1419; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .big-number { font-size: 52px; font-weight: 700; line-height: 1.1; background: linear-gradient(135deg, var(--accent), var(--accent-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .unit { font-size: 16px; color: var(--text-secondary); margin-top: 6px; }
+        .confidence { font-size: 12px; color: var(--text-secondary); margin-top: 10px; background: var(--bg); padding: 6px 12px; border-radius: 12px; display: inline-block; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .grid-hero { display: grid; grid-template-columns: 1.2fr 1fr 1.5fr; gap: 16px; margin-bottom: 20px; }
+        .grid-hero { display: grid; grid-template-columns: 1.3fr 1fr 1.8fr; gap: 16px; margin-bottom: 16px; }
+        .grid-hero > .card { padding: 16px; }
+        .grid-hero .card-title { margin-bottom: 12px; font-size: 11px; }
+        .section-gap { height: 8px; }
         .stat { text-align: center; padding: 20px; background: var(--surface-light); border-radius: 10px; border: 1px solid var(--border); }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
         .stat-icon { font-size: 24px; margin-bottom: 8px; }
         .current-weather { display: flex; justify-content: center; gap: 20px; padding: 12px 0; flex-wrap: wrap; }
-        .current-weather-compact { display: flex; justify-content: space-around; gap: 8px; }
-        .current-weather-compact .item { text-align: center; padding: 8px; }
-        .current-weather-compact .value { font-size: 22px; font-weight: 600; color: var(--accent-gold); }
-        .current-weather-compact .label { font-size: 16px; }
+        .current-weather-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+        .current-weather-compact .item { background: var(--bg); border-radius: 8px; padding: 12px 8px; }
+        .current-weather-compact .value { font-size: 24px; font-weight: 700; color: var(--accent-gold); display: block; }
+        .current-weather-compact .label { font-size: 18px; }
         .current-weather .item { text-align: center; }
         .current-weather .value { font-size: 28px; font-weight: 600; color: var(--accent-gold); }
         .current-weather .label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
@@ -122,10 +130,13 @@
         .forecast-temp-low { font-size: 12px; color: var(--text-secondary); }
         .forecast-rain { font-size: 11px; color: #4a9eff; margin-top: 4px; }
         
-        .forecast-grid-compact { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
-        .forecast-grid-compact .forecast-day { min-width: 60px; padding: 8px 4px; }
-        .forecast-grid-compact .forecast-icon { font-size: 20px; }
-        .forecast-grid-compact .forecast-temp { font-size: 14px; }
+        .forecast-grid-compact { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .forecast-grid-compact .forecast-day { background: var(--bg); border-radius: 8px; padding: 10px 6px; text-align: center; }
+        .forecast-grid-compact .forecast-icon { font-size: 22px; display: block; margin: 2px 0; }
+        .forecast-grid-compact .forecast-temp { font-size: 14px; font-weight: 600; display: block; }
+        .forecast-grid-compact .forecast-temp-low { font-size: 11px; display: block; }
+        .forecast-grid-compact .forecast-rain { font-size: 10px; display: block; margin-top: 2px; }
+        .forecast-grid-compact .forecast-date { font-size: 10px; margin-bottom: 4px; }
         
         @media (max-width: 900px) { .forecast-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 600px) { .forecast-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -141,11 +152,17 @@
         @media (max-width: 900px) { 
             .grid-hero { grid-template-columns: 1fr; } 
             .grid-2 { grid-template-columns: 1fr; }
+            .forecast-grid-compact { grid-template-columns: repeat(4, 1fr); }
         }
         @media (max-width: 768px) { 
             .charts-grid { grid-template-columns: 1fr; } 
             .grid-3 { grid-template-columns: 1fr; } 
-            .big-number { font-size: 48px; }
+            .big-number { font-size: 42px; }
+            .forecast-grid-compact { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .forecast-grid-compact { grid-template-columns: repeat(2, 1fr); }
+            .current-weather-compact { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
