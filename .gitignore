@@ -1,21 +1,39 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pkl
-# EXCEPT the simple model we need:
 !olive_model_simple.pkl
 .Python
 venv/
 env/
 .venv
+
+# Logs and OS
 *.log
 .DS_Store
 ._*
+.RData
+.Rhistory
+.Rproj.user/
+
+# Build outputs
 *.aux
 *.out
 *.synctex.gz
+
+# Data files
 *.pdf
 *.png
-.xlsx
-.RData
-.Rhistory
+*.xlsx
+*.csv
+
+# Models and scripts (keep only essential)
+*.py
+!backend/main.py
+*.R
+*.tex
+
+# Services
+start*.bat
+start_services.py
