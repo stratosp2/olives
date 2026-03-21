@@ -62,12 +62,59 @@
         footer { text-align: center; padding: 30px; color: var(--text-secondary); font-size: 12px; }
         footer a { color: var(--accent); text-decoration: none; }
         .model-badge { display: inline-block; background: var(--bg); padding: 4px 12px; border-radius: 12px; font-size: 11px; color: var(--accent-olive); border: 1px solid var(--accent-olive); margin-top: 12px; }
+        
+        /* Disease Risk Styles */
+        .risk-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .risk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .risk-name { font-weight: 600; font-size: 14px; }
+        .risk-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .risk-high { background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
+        .risk-moderate { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .risk-low { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .risk-bar { height: 6px; background: var(--bg); border-radius: 3px; margin: 10px 0; overflow: hidden; }
+        .risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+        .risk-bar-high { background: linear-gradient(90deg, #ff6b6b, #ff4757); }
+        .risk-bar-moderate { background: linear-gradient(90deg, #ffc107, #ffab00); }
+        .risk-bar-low { background: linear-gradient(90deg, #28a745, #20c997); }
+        .risk-description { font-size: 12px; color: var(--text-secondary); margin: 8px 0; line-height: 1.4; }
+        .risk-recommendations { font-size: 11px; color: var(--text-secondary); padding-left: 16px; }
+        .risk-recommendations li { margin: 4px 0; }
+        
+        /* Foliar Fertilisation Styles */
+        .foliar-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .foliar-header { display: flex; justify-content: space-between; align-items: center; }
+        .foliar-name { font-weight: 600; font-size: 14px; }
+        .foliar-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-optimal { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .status-suboptimal { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .status-out-of-season { background: rgba(108, 117, 125, 0.2); color: #6c757d; border: 1px solid #6c757d; }
+        .foliar-description { font-size: 12px; color: var(--text-secondary); margin: 8px 0; }
+        .foliar-conditions { display: flex; gap: 12px; margin: 8px 0; flex-wrap: wrap; }
+        .condition-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; background: var(--bg); }
+        .condition-ok { color: #28a745; }
+        .condition-warning { color: #ffc107; }
+        .condition-bad { color: #ff6b6b; }
+        
+        .overall-risk-banner { padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        .overall-risk-high { background: linear-gradient(135deg, rgba(220, 53, 69, 0.3), rgba(255, 71, 87, 0.2)); border: 1px solid #ff6b6b; }
+        .overall-risk-moderate { background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 171, 0, 0.2)); border: 1px solid #ffc107; }
+        .overall-risk-low { background: linear-gradient(135deg, rgba(40, 167, 69, 0.3), rgba(32, 201, 151, 0.2)); border: 1px solid #28a745; }
+        .overall-risk-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .overall-risk-text { font-size: 13px; opacity: 0.9; }
+        
+        .timing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .timing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .timing-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 8px; }
+        .timing-value { font-size: 20px; font-weight: 600; color: var(--accent-gold); }
+        .timing-label { font-size: 10px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
+        
         @media (max-width: 768px) { 
             .charts-grid { grid-template-columns: 1fr; } 
             .grid-3 { grid-template-columns: 1fr; } 
             .weather-info { flex-direction: column; gap: 20px; }
             .current-weather { flex-direction: column; gap: 20px; }
             .big-number { font-size: 48px; }
+            .timing-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -89,6 +136,17 @@
                 <div class="item"><div class="value" id="curWind">-</div><div class="label">💨 Άνεμος</div></div>
             </div>
             <div class="last-update" id="lastUpdate">Ενημέρωση: -</div>
+            
+            <div id="diseaseRiskSection" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: none;">
+                <div class="card-title" style="margin-bottom: 12px;">⚠️ Κίνδυνος Ασθενειών</div>
+                <div id="overallRiskBanner"></div>
+                <div id="diseaseRisks"></div>
+            </div>
+            
+            <div id="foliarSection" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: none;">
+                <div class="card-title" style="margin-bottom: 12px;">🌿 Διαφυλλική Λίπανση</div>
+                <div id="foliarRecommendations"></div>
+            </div>
         </div>
 
         <div class="grid-3">
@@ -215,10 +273,121 @@
                     updateCharts(hist.data); 
                     document.querySelector('#historyTable tbody').innerHTML = hist.data.slice(-15).reverse().map(d => `<tr><td class="year-col">${d.year}</td><td>${d.trees||'-'}</td><td>${d.olives||'-'}</td><td>${d.oil||'-'}</td><td>${d.ratio?d.ratio.toFixed(1)+'%':'-'}</td></tr>`).join(''); 
                 }
+                
+                // Fetch disease risk and foliar recommendations
+                loadDiseaseAndFoliarData();
             } catch(e) { 
                 document.getElementById('prediction').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary);">⚠️ Σφάλμα σύνδεσης με το API</div>'; 
             }
         }
+        
+        async function loadDiseaseAndFoliarData() {
+            try {
+                const [diseaseRes, foliarRes] = await Promise.all([
+                    fetch(API + '/api/disease-risk').then(r => r.json()).catch(() => null),
+                    fetch(API + '/api/foliar-fertilization').then(r => r.json()).catch(() => null)
+                ]);
+                
+                if (diseaseRes && diseaseRes.success) {
+                    document.getElementById('diseaseRiskSection').style.display = 'block';
+                    renderDiseaseRisk(diseaseRes);
+                }
+                
+                if (foliarRes && foliarRes.success) {
+                    document.getElementById('foliarSection').style.display = 'block';
+                    renderFoliarRecommendations(foliarRes);
+                }
+            } catch(e) {
+                console.log('Disease/Foliar fetch error:', e);
+            }
+        }
+        
+        function renderDiseaseRisk(data) {
+            const overallRisk = data.overall_risk || 'LOW';
+            const bannerClass = overallRisk === 'HIGH' ? 'overall-risk-high' : overallRisk === 'MODERATE' ? 'overall-risk-moderate' : 'overall-risk-low';
+            const bannerText = overallRisk === 'HIGH' ? 'Υψηλός κίνδυνος - Απαιτείται άμεση δράση' : overallRisk === 'MODERATE' ? 'Μέτριος κίνδυνος - Παρακολούθηση συνιστάται' : 'Χαμηλός κίνδυνος - Καλές συνθήκες';
+            
+            document.getElementById('overallRiskBanner').innerHTML = `
+                <div class="overall-risk-banner ${bannerClass}">
+                    <div class="overall-risk-title">${overallRisk === 'HIGH' ? '🔴' : overallRisk === 'MODERATE' ? '🟡' : '🟢'} Γενικός Κίνδυνος: ${overallRisk}</div>
+                    <div class="overall-risk-text">${bannerText}</div>
+                </div>
+            `;
+            
+            let diseasesHtml = '';
+            const diseaseNames = {
+                peacock_spot: 'Παγωνιό μάτι (Cycloconio)',
+                verticillium_wilt: 'Αδρανοποίηση (Verticillium)',
+                olive_knot: 'Οζώδης ασθένεια',
+                xylella: 'Xylella fastidiosa',
+                anthracnose: 'Ανθράκωση (Λέπρα)'
+            };
+            
+            for (const [key, disease] of Object.entries(data.diseases || {})) {
+                if (!disease || !disease.risk_level) continue;
+                const riskLabel = disease.risk_label || 'LOW';
+                const riskBadgeClass = riskLabel === 'HIGH' ? 'risk-high' : riskLabel === 'MODERATE' ? 'risk-moderate' : 'risk-low';
+                const riskBarClass = riskLabel === 'HIGH' ? 'risk-bar-high' : riskLabel === 'MODERATE' ? 'risk-bar-moderate' : 'risk-bar-low';
+                
+                diseasesHtml += `
+                    <div class="risk-card">
+                        <div class="risk-header">
+                            <span class="risk-name">${diseaseNames[key] || key}</span>
+                            <span class="risk-badge ${riskBadgeClass}">${riskLabel}</span>
+                        </div>
+                        <div class="risk-bar"><div class="risk-bar-fill ${riskBarClass}" style="width: ${disease.risk_level}%;"></div></div>
+                        <div class="risk-description">${disease.description || ''}</div>
+                        <div style="font-size:11px;color:var(--accent);margin-top:8px;">📋 ${disease.best_treatment_time || 'N/A'}</div>
+                    </div>
+                `;
+            }
+            document.getElementById('diseaseRisks').innerHTML = diseasesHtml;
+        }
+        
+        function renderFoliarRecommendations(data) {
+            const seasonNames = { winter: 'Χειμώνας', spring: 'Άνοιξη', summer: 'Καλοκαίρι', autumn: 'Φθινόπωρο' };
+            const currentConditions = data.current_conditions || {};
+            
+            let html = `
+                <div style="margin-bottom: 12px; font-size: 12px; color: var(--text-secondary);">
+                    <strong>Εποχή:</strong> ${seasonNames[data.season] || data.season} | 
+                    <strong>Θερμοκρασία:</strong> ${currentConditions.temperature || '-'}°C | 
+                    <strong>Υγρασία:</strong> ${currentConditions.humidity || '-'}%
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">
+                    <strong>Βέλτιστη ώρα:</strong> ${data.timing_advice?.best_time_of_day || 'Πρωί/Απόγευμα'}<br>
+                    <strong>Αποφυγή:</strong> ${data.timing_advice?.avoid || 'Ζέστη, α ветер, βροχή'}
+                </div>
+            `;
+            
+            const statusNames = { OPTIMAL: 'ΒΕΛΤΙΣΤΟ', SUBOPTIMAL: 'ΥΠΟΒΕΛΤΙΣΤΟ', NOT_YET: 'ΕΚΤΟΣ ΕΠΟΧΗΣ' };
+            const statusClasses = { OPTIMAL: 'status-optimal', SUBOPTIMAL: 'status-suboptimal', NOT_YET: 'status-out-of-season' };
+            
+            for (const rec of (data.recommendations || [])) {
+                const statusClass = statusClasses[rec.status] || 'status-out-of-season';
+                const conditions = rec.conditions || {};
+                const tempOk = conditions.temperature?.ok;
+                const humOk = conditions.humidity?.ok;
+                
+                html += `
+                    <div class="foliar-card">
+                        <div class="foliar-header">
+                            <span class="foliar-name">${rec.name || rec.type}</span>
+                            <span class="foliar-status ${statusClass}">${statusNames[rec.status] || rec.status}</span>
+                        </div>
+                        <div class="foliar-description">${rec.description || ''}</div>
+                        <div class="foliar-conditions">
+                            <span class="condition-badge ${tempOk ? 'condition-ok' : 'condition-warning'}">🌡️ ${conditions.temperature?.current || '-'}/${conditions.temperature?.required || '-'}</span>
+                            <span class="condition-badge ${humOk ? 'condition-ok' : 'condition-warning'}">💧 ${conditions.humidity?.current || '-'}%/${conditions.humidity?.required || '-'}</span>
+                        </div>
+                        <div style="font-size:11px;color:var(--accent);">→ ${rec.recommendation || ''}</div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('foliarRecommendations').innerHTML = html;
+        }
+        
         initCharts(); loadData();
     </script>
 </body>

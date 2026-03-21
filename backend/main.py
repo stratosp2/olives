@@ -439,6 +439,378 @@ def update_weather():
         return {"success": False, "error": str(e)}
 
 
+# Disease Risk Assessment Functions
+DISEASE_THRESHOLDS = {
+    "peacock_spot": {
+        "temp_min": 10, "temp_max": 25, "temp_optimal": (15, 22),
+        "humidity_min": 70, "wetness_hours": 48,
+        "description": "Fungal disease causing leaf spots, defoliation. Optimal: 15-22°C with high humidity and prolonged leaf wetness.",
+        "symptoms": ["Circular dark spots on leaves", "Yellow halos", "Premature defoliation"]
+    },
+    "verticillium_wilt": {
+        "temp_min": 15, "temp_max": 28, "temp_optimal": (18, 25),
+        "rain_periods": True, "poor_drainage": True,
+        "description": "Soil-borne fungus blocking water vessels. Thrives with mild temps + rain periods.",
+        "symptoms": ["Sudden wilting of branches", "Leaf browning (stays attached)", "Branch dieback"]
+    },
+    "olive_knot": {
+        "temp_min": 5, "temp_max": 25, "temp_optimal": (10, 20),
+        "humidity_min": 60, "wounds_required": True,
+        "description": "Bacterial disease causing tumors on branches. Favored by mild temps, humidity, and bark wounds.",
+        "symptoms": ["Galls/knots on branches", "Tumor formation", "Reduced vigor"]
+    },
+    "xylella": {
+        "temp_min": 15, "temp_max": 35, "temp_optimal": (26, 28),
+        "humidity_min": 50, "vector_present": True,
+        "description": "Deadly bacterial disease (OQDS). Optimal spread at 26-28°C via spittlebug vectors.",
+        "symptoms": ["Leaf scorch", "Branch wilting", "Rapid tree decline"]
+    },
+    "anthracnose": {
+        "temp_min": 15, "temp_max": 27, "temp_optimal": (18, 24),
+        "humidity_min": 85, "rain_wetness": True,
+        "description": "Fungal fruit rot. High humidity and rain favor fruit infection.",
+        "symptoms": ["Mummified fruit", "Fruit rot", "Twig dieback"]
+    }
+}
+
+FOLIAR_CONDITIONS = {
+    "nitrogen_early_spring": {
+        "temp_range": (10, 20), "humidity_min": 50,
+        "best_months": [2, 3], "description": "Nitrogen for vegetative recovery and flower differentiation"
+    },
+    "boron_preflowering": {
+        "temp_range": (12, 22), "humidity_min": 55,
+        "best_months": [3, 4], "description": "Boron, zinc for flowering and fruit set"
+    },
+    "potassium_summer": {
+        "temp_range": (20, 32), "humidity_min": 40,
+        "best_months": [6, 7, 8], "description": "Potassium, magnesium for fruit growth"
+    },
+    "calcium_midsummer": {
+        "temp_range": (18, 30), "humidity_min": 45,
+        "best_months": [5, 6, 7], "description": "Calcium for fruit firmness and stress resistance"
+    },
+    "phosphorus_autumn": {
+        "temp_range": (12, 25), "humidity_min": 50,
+        "best_months": [9, 10, 11], "description": "Phosphorus for reserve replenishment"
+    }
+}
+
+def calculate_disease_risk(weather_data):
+    """Calculate disease risk based on recent weather conditions"""
+    if weather_data is None or len(weather_data) == 0:
+        return {"error": "No weather data available"}
+    
+    current = weather_data.iloc[-1]
+    temp = current.get("Avg_Temp", 20)
+    humidity = current.get("Humidity", 50) if "Humidity" in current.columns else 50
+    rain = current.get("Rain", 0)
+    clouds = current.get("Clouds", 50)
+    
+    month = current["month"] if "month" in current else 5
+    
+    recent = weather_data.tail(30)
+    avg_temp = recent["Avg_Temp"].mean()
+    total_rain = recent["Rain"].sum()
+    avg_humidity = recent["Humidity"].mean() if "Humidity" in recent.columns else 50
+    rainy_days = (recent["Rain"] > 0.5).sum()
+    
+    risks = {}
+    
+    # Peacock Spot
+    ps = DISEASE_THRESHOLDS["peacock_spot"]
+    ps_risk = 0
+    if ps["temp_min"] <= avg_temp <= ps["temp_max"]:
+        ps_risk += 30
+        if ps["temp_optimal"][0] <= avg_temp <= ps["temp_optimal"][1]:
+            ps_risk += 30
+    if avg_humidity >= ps["humidity_min"]:
+        ps_risk += 20
+    if rainy_days >= 3:
+        ps_risk += 20
+    if month in [3, 4, 5, 9, 10, 11]:
+        ps_risk += 10
+    risks["peacock_spot"] = {
+        "name": "Peacock Spot (Cycloconio)",
+        "risk_level": min(100, ps_risk),
+        "risk_label": "HIGH" if ps_risk >= 70 else "MODERATE" if ps_risk >= 40 else "LOW",
+        "description": ps["description"],
+        "recommendations": [
+            "Apply copper fungicide before winter rains" if ps_risk >= 50 else "Monitor conditions",
+            "Ensure good canopy ventilation",
+            "Avoid overhead irrigation"
+        ],
+        "best_treatment_time": "Late October or early spring"
+    }
+    
+    # Verticillium Wilt
+    vw = DISEASE_THRESHOLDS["verticillium_wilt"]
+    vw_risk = 0
+    if vw["temp_min"] <= avg_temp <= vw["temp_max"]:
+        vw_risk += 30
+        if vw["temp_optimal"][0] <= avg_temp <= vw["temp_optimal"][1]:
+            vw_risk += 30
+    if total_rain > 50:
+        vw_risk += 25
+    if rainy_days >= 5:
+        vw_risk += 15
+    risks["verticillium_wilt"] = {
+        "name": "Verticillium Wilt",
+        "risk_level": min(100, vw_risk),
+        "risk_label": "HIGH" if vw_risk >= 70 else "MODERATE" if vw_risk >= 40 else "LOW",
+        "description": vw["description"],
+        "recommendations": [
+            "Improve soil drainage" if vw_risk >= 50 else "Monitor soil moisture",
+            "Avoid planting after susceptible crops (cotton, tomatoes)",
+            "No chemical cure - focus on prevention"
+        ],
+        "best_treatment_time": "Prevention before planting"
+    }
+    
+    # Olive Knot
+    ok = DISEASE_THRESHOLDS["olive_knot"]
+    ok_risk = 0
+    if ok["temp_min"] <= avg_temp <= ok["temp_max"]:
+        ok_risk += 25
+        if ok["temp_optimal"][0] <= avg_temp <= ok["temp_optimal"][1]:
+            ok_risk += 25
+    if avg_humidity >= ok["humidity_min"]:
+        ok_risk += 25
+    if month in [12, 1, 2, 3, 4]:
+        ok_risk += 15
+    if total_rain > 30:
+        ok_risk += 10
+    risks["olive_knot"] = {
+        "name": "Olive Knot (Tuberculosis)",
+        "risk_level": min(100, ok_risk),
+        "risk_label": "HIGH" if ok_risk >= 70 else "MODERATE" if ok_risk >= 40 else "LOW",
+        "description": ok["description"],
+        "recommendations": [
+            "Remove tumors in summer (July-August) in dry conditions",
+            "Apply copper after pruning",
+            "Disinfect pruning tools"
+        ],
+        "best_treatment_time": "Summer for tumor removal, copper spray after pruning"
+    }
+    
+    # Xylella
+    xl = DISEASE_THRESHOLDS["xylella"]
+    xl_risk = 0
+    if xl["temp_min"] <= avg_temp <= xl["temp_max"]:
+        xl_risk += 20
+        if xl["temp_optimal"][0] <= avg_temp <= xl["temp_optimal"][1]:
+            xl_risk += 40
+    if avg_temp > 20:
+        xl_risk += 20
+    if avg_humidity >= xl["humidity_min"]:
+        xl_risk += 20
+    risks["xylella"] = {
+        "name": "Xylella Fastidiosa",
+        "risk_level": min(100, xl_risk),
+        "risk_label": "HIGH" if xl_risk >= 70 else "MODERATE" if xl_risk >= 40 else "LOW",
+        "description": xl["description"],
+        "recommendations": [
+            "Monitor for spittlebug vectors",
+            "No cure - prevention critical",
+            "Report suspicious symptoms immediately"
+        ],
+        "best_treatment_time": "Vector control in spring-summer"
+    }
+    
+    # Anthracnose
+    ac = DISEASE_THRESHOLDS["anthracnose"]
+    ac_risk = 0
+    if ac["temp_min"] <= avg_temp <= ac["temp_max"]:
+        ac_risk += 25
+        if ac["temp_optimal"][0] <= avg_temp <= ac["temp_optimal"][1]:
+            ac_risk += 25
+    if avg_humidity >= ac["humidity_min"]:
+        ac_risk += 30
+    if total_rain > 40:
+        ac_risk += 20
+    risks["anthracnose"] = {
+        "name": "Anthracnose (Leprosy)",
+        "risk_level": min(100, ac_risk),
+        "risk_label": "HIGH" if ac_risk >= 70 else "MODERATE" if ac_risk >= 40 else "LOW",
+        "description": ac["description"],
+        "recommendations": [
+            "Apply fungicide at first signs of rain in risky periods",
+            "Remove infected fruit",
+            "Improve air circulation"
+        ],
+        "best_treatment_time": "Before rain events in spring-autumn"
+    }
+    
+    return risks
+
+def calculate_foliar_recommendations(weather_data):
+    """Calculate foliar fertilisation recommendations based on weather and season"""
+    if weather_data is None or len(weather_data) == 0:
+        return {"error": "No weather data available"}
+    
+    current = weather_data.iloc[-1]
+    temp = current.get("Avg_Temp", 20)
+    humidity = current.get("Humidity", 50) if "Humidity" in current.columns else 50
+    clouds = current.get("Clouds", 50)
+    month = current["month"] if "month" in current.columns else 5
+    
+    recent = weather_data.tail(7)
+    recent_temp = recent["Avg_Temp"].mean()
+    recent_humidity = recent["Humidity"].mean() if "Humidity" in recent.columns else 50
+    recent_rain = recent["Rain"].sum()
+    
+    recommendations = []
+    
+    # Check each foliar type
+    for key, fert in FOLIAR_CONDITIONS.items():
+        temp_min, temp_max = fert["temp_range"]
+        in_season = month in fert["best_months"]
+        temp_ok = temp_min <= recent_temp <= temp_max
+        humidity_ok = recent_humidity >= fert["humidity_min"]
+        no_rain = recent_rain < 5
+        
+        if in_season:
+            status = "OPTIMAL" if (temp_ok and humidity_ok and no_rain) else "SUBOPTIMAL" if in_season else "NOT_YET"
+            recommendations.append({
+                "type": key,
+                "name": key.replace("_", " ").title(),
+                "description": fert["description"],
+                "months": fert["best_months"],
+                "current_month": month,
+                "in_season": in_season,
+                "weather_suitable": temp_ok and humidity_ok and no_rain,
+                "conditions": {
+                    "temperature": {"current": round(recent_temp, 1), "required": f"{temp_min}-{temp_max}°C", "ok": temp_ok},
+                    "humidity": {"current": round(recent_humidity, 1), "required": f">{fert['humidity_min']}%", "ok": humidity_ok},
+                    "no_rain_expected": {"required": "No rain", "ok": no_rain}
+                },
+                "status": status,
+                "recommendation": f"Apply now" if status == "OPTIMAL" else f"Wait for better conditions" if status == "SUBOPTIMAL" else "Not in optimal season"
+            })
+    
+    # General timing advice
+    timing_advice = {
+        "best_time_of_day": "Early morning (6-9 AM) or late afternoon (5-7 PM)",
+        "avoid": "Midday heat (>30°C), strong wind, rain forecast within 24h",
+        "current_conditions": {
+            "temperature": round(recent_temp, 1),
+            "humidity": round(recent_humidity, 1),
+            "recent_rain": round(recent_rain, 1)
+        }
+    }
+    
+    return {
+        "recommendations": recommendations,
+        "timing_advice": timing_advice,
+        "season": "winter" if month in [12, 1, 2] else "spring" if month in [3, 4, 5] else "summer" if month in [6, 7, 8] else "autumn"
+    }
+
+
+@app.get("/api/disease-risk")
+def get_disease_risk():
+    """Get disease risk assessment based on current weather"""
+    try:
+        import requests
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 40.7333,
+                "longitude": 22.8333,
+                "past_days": 30,
+                "daily": "temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean",
+                "timezone": "Europe/Athens"
+            },
+            timeout=30
+        )
+        data = resp.json()
+        daily = data.get("daily", {})
+        
+        records = []
+        dates = daily.get("time", [])
+        for i, date in enumerate(dates):
+            records.append({
+                "Date": date,
+                "Avg_Temp": daily.get("temperature_2m_mean", [None])[i],
+                "Max_Temp": daily.get("temperature_2m_max", [None])[i],
+                "Min_Temp": daily.get("temperature_2m_min", [None])[i],
+                "Rain": daily.get("precipitation_sum", [0])[i] or 0,
+                "Clouds": daily.get("cloud_cover_mean", [None])[i],
+                "Humidity": 100 - (daily.get("cloud_cover_mean", [50])[i] or 50),
+                "month": int(date[5:7])
+            })
+        
+        df = pd.DataFrame(records)
+        df["Date"] = pd.to_datetime(df["Date"])
+        
+        risks = calculate_disease_risk(df)
+        overall = {
+            "HIGH": sum(1 for r in risks.values() if isinstance(r, dict) and r.get("risk_label") == "HIGH"),
+            "MODERATE": sum(1 for r in risks.values() if isinstance(r, dict) and r.get("risk_label") == "MODERATE"),
+            "LOW": sum(1 for r in risks.values() if isinstance(r, dict) and r.get("risk_label") == "LOW")
+        }
+        
+        return {
+            "success": True,
+            "current_conditions": {
+                "avg_temperature": round(df["Avg_Temp"].mean(), 1),
+                "total_rain_30d": round(df["Rain"].sum(), 1),
+                "avg_humidity_estimate": round(df["Humidity"].mean(), 1),
+                "rainy_days_30d": int((df["Rain"] > 0.5).sum())
+            },
+            "overall_risk": "HIGH" if overall["HIGH"] >= 3 else "MODERATE" if overall["HIGH"] >= 1 or overall["MODERATE"] >= 3 else "LOW",
+            "disease_counts": overall,
+            "diseases": risks
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/foliar-fertilization")
+def get_foliar_recommendations():
+    """Get foliar fertilisation recommendations based on current weather and season"""
+    try:
+        import requests
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 40.7333,
+                "longitude": 22.8333,
+                "past_days": 7,
+                "daily": "temperature_2m_mean,precipitation_sum,cloud_cover_mean",
+                "timezone": "Europe/Athens"
+            },
+            timeout=30
+        )
+        data = resp.json()
+        daily = data.get("daily", {})
+        
+        records = []
+        dates = daily.get("time", [])
+        for i, date in enumerate(dates):
+            records.append({
+                "Date": date,
+                "Avg_Temp": daily.get("temperature_2m_mean", [None])[i],
+                "Rain": daily.get("precipitation_sum", [0])[i] or 0,
+                "Clouds": daily.get("cloud_cover_mean", [None])[i],
+                "Humidity": 100 - (daily.get("cloud_cover_mean", [50])[i] or 50),
+                "month": int(date[5:7])
+            })
+        
+        df = pd.DataFrame(records)
+        
+        result = calculate_foliar_recommendations(df)
+        
+        return {
+            "success": True,
+            "current_conditions": result.get("timing_advice", {}).get("current_conditions", {}),
+            "season": result.get("season", "unknown"),
+            "recommendations": result.get("recommendations", []),
+            "timing_advice": result.get("timing_advice", {})
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
