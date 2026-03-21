@@ -284,7 +284,7 @@
         async function loadDiseaseAndFoliarData() {
             try {
                 // Fetch weather directly from Open-Meteo (browser-side)
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean&timezone=Europe/Athens');
+                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&past_days=30&forecast_days=7&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean&timezone=Europe/Athens');
                 const data = await resp.json();
                 const daily = data.daily || {};
                 const dates = daily.time || [];
