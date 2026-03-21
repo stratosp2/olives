@@ -30,31 +30,33 @@
         .card-sm { padding: 16px; }
         .card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .card-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
-        .prediction-hero { text-align: center; padding: 24px 16px; background: linear-gradient(145deg, var(--surface) 0%, var(--surface-light) 100%); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
+        .prediction-hero { text-align: center; padding: 16px; background: linear-gradient(145deg, var(--surface) 0%, var(--surface-light) 100%); border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; }
         .prediction-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-olive), var(--accent-gold)); }
-        .grid-hero .prediction-hero { padding: 16px 12px; }
-        .grid-hero .big-number { font-size: 42px; }
-        .grid-hero .unit { font-size: 14px; margin-top: 4px; }
-        .grid-hero .confidence { font-size: 11px; padding: 4px 10px; margin-top: 8px; }
+        .grid-hero .prediction-hero { padding: 12px; }
+        .grid-hero .big-number { font-size: 36px; }
+        .grid-hero .unit { font-size: 12px; margin-top: 2px; }
+        .grid-hero .confidence { font-size: 10px; padding: 3px 8px; margin-top: 6px; }
+        .grid-hero .year-badge { font-size: 10px; padding: 3px 8px; margin-bottom: 8px; }
+        .grid-hero .model-badge { font-size: 9px; padding: 2px 6px; }
         .year-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-olive)); color: #0f1419; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
         .big-number { font-size: 52px; font-weight: 700; line-height: 1.1; background: linear-gradient(135deg, var(--accent), var(--accent-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .unit { font-size: 16px; color: var(--text-secondary); margin-top: 6px; }
         .confidence { font-size: 12px; color: var(--text-secondary); margin-top: 10px; background: var(--bg); padding: 6px 12px; border-radius: 12px; display: inline-block; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .grid-hero { display: grid; grid-template-columns: 1.3fr 1fr 1.8fr; gap: 16px; margin-bottom: 16px; }
-        .grid-hero > .card { padding: 16px; }
-        .grid-hero .card-title { margin-bottom: 12px; font-size: 11px; }
-        .section-gap { height: 8px; }
+        .grid-hero { display: grid; grid-template-columns: 1.2fr 1fr 1.8fr; gap: 12px; margin-bottom: 16px; align-items: stretch; }
+        .grid-hero > .card { padding: 12px; display: flex; flex-direction: column; }
+        .grid-hero .card-title { margin-bottom: 8px; font-size: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+        .grid-hero .prediction-hero { justify-content: center; }
         .stat { text-align: center; padding: 20px; background: var(--surface-light); border-radius: 10px; border: 1px solid var(--border); }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
         .stat-icon { font-size: 24px; margin-bottom: 8px; }
         .current-weather { display: flex; justify-content: center; gap: 20px; padding: 12px 0; flex-wrap: wrap; }
-        .current-weather-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-        .current-weather-compact .item { background: var(--bg); border-radius: 8px; padding: 12px 8px; }
-        .current-weather-compact .value { font-size: 24px; font-weight: 700; color: var(--accent-gold); display: block; }
-        .current-weather-compact .label { font-size: 18px; }
+        .current-weather-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .current-weather-compact .item { background: var(--bg); border-radius: 8px; padding: 10px 6px; text-align: center; }
+        .current-weather-compact .value { font-size: 18px; font-weight: 700; color: var(--accent-gold); }
+        .current-weather-compact .label { font-size: 11px; color: var(--text-secondary); display: block; }
         .current-weather .item { text-align: center; }
         .current-weather .value { font-size: 28px; font-weight: 600; color: var(--accent-gold); }
         .current-weather .label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
@@ -130,13 +132,13 @@
         .forecast-temp-low { font-size: 12px; color: var(--text-secondary); }
         .forecast-rain { font-size: 11px; color: #4a9eff; margin-top: 4px; }
         
-        .forecast-grid-compact { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .forecast-grid-compact .forecast-day { background: var(--bg); border-radius: 8px; padding: 10px 6px; text-align: center; }
-        .forecast-grid-compact .forecast-icon { font-size: 22px; display: block; margin: 2px 0; }
-        .forecast-grid-compact .forecast-temp { font-size: 14px; font-weight: 600; display: block; }
-        .forecast-grid-compact .forecast-temp-low { font-size: 11px; display: block; }
-        .forecast-grid-compact .forecast-rain { font-size: 10px; display: block; margin-top: 2px; }
-        .forecast-grid-compact .forecast-date { font-size: 10px; margin-bottom: 4px; }
+        .forecast-grid-compact { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .forecast-grid-compact .forecast-day { background: var(--bg); border-radius: 6px; padding: 8px 4px; text-align: center; }
+        .forecast-grid-compact .forecast-icon { font-size: 18px; }
+        .forecast-grid-compact .forecast-date { font-size: 10px; color: var(--text-secondary); white-space: nowrap; }
+        .forecast-grid-compact .forecast-temp { font-size: 13px; font-weight: 600; }
+        .forecast-grid-compact .forecast-temp-low { font-size: 10px; color: var(--text-secondary); }
+        .forecast-grid-compact .forecast-rain { font-size: 9px; color: #4a9eff; }
         
         @media (max-width: 900px) { .forecast-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 600px) { .forecast-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -175,19 +177,21 @@
         
         <!-- Section 1: Hero - Prediction + Weather + Forecast -->
         <div class="grid-hero">
-            <div class="card prediction-hero" id="prediction"><div style="padding:40px;">Φόρτωση...</div></div>
-            <div class="card">
-                <div class="card-title">Τρέχων Καιρός</div>
-                <div class="current-weather-compact" id="currentWeather">
-                    <div class="item"><div class="value" id="curTemp">-</div><div class="label">🌡️</div></div>
-                    <div class="item"><div class="value" id="curClouds">-</div><div class="label">☁️</div></div>
-                    <div class="item"><div class="value" id="curRain">-</div><div class="label">🌧️</div></div>
-                    <div class="item"><div class="value" id="curHumidity">-</div><div class="label">💧</div></div>
-                </div>
-                <div class="last-update" id="lastUpdate">-</div>
+            <div class="card prediction-hero" id="prediction" style="display:flex;flex-direction:column;justify-content:center;min-height:200px;">
+                <div style="padding:16px;">Φόρτωση...</div>
             </div>
-            <div class="card">
-                <div class="card-title">7-Ημερη Πρόβλεψη</div>
+            <div class="card" style="padding:16px;">
+                <div class="card-title" style="margin-bottom:12px;">Τρέχων Καιρός</div>
+                <div class="current-weather-compact" id="currentWeather">
+                    <div class="item"><span class="value" id="curTemp">-</span><span class="label">°C</span></div>
+                    <div class="item"><span class="value" id="curClouds">-</span><span class="label">% ☁️</span></div>
+                    <div class="item"><span class="value" id="curRain">-</span><span class="label">mm 💧</span></div>
+                    <div class="item"><span class="value" id="curHumidity">-</span><span class="label">% 💦</span></div>
+                </div>
+                <div class="last-update" id="lastUpdate" style="margin-top:12px;font-size:10px;">-</div>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div class="card-title" style="margin-bottom:12px;">7-Ημερη Πρόβλεψη</div>
                 <div class="forecast-grid-compact" id="forecastGrid"></div>
             </div>
         </div>
@@ -355,7 +359,6 @@
                 for (let i = 0; i < dates.length; i++) {
                     const date = new Date(dates[i].replace(/-/g, '/'));
                     const dayName = i === 0 ? 'Σήμερα' : dayNames[date.getDay()];
-                    const dateStr = date.toLocaleDateString('el-GR', { day: 'numeric', month: 'short' });
                     const icon = weatherIcons[daily.weather_code?.[i]] || '🌤️';
                     const maxTemp = Math.round(daily.temperature_2m_max?.[i] || 0);
                     const minTemp = Math.round(daily.temperature_2m_min?.[i] || 0);
@@ -363,11 +366,10 @@
                     
                     html += `
                         <div class="forecast-day">
-                            <div class="forecast-date">${dayName}<br>${dateStr}</div>
+                            <div class="forecast-date">${dayName}</div>
                             <div class="forecast-icon">${icon}</div>
-                            <div class="forecast-temp">${maxTemp}°</div>
-                            <div class="forecast-temp-low">${minTemp}°</div>
-                            <div class="forecast-rain">${rain > 0 ? '🌧️ ' + rain + 'mm' : '☀️'}</div>
+                            <div>${maxTemp}° / ${minTemp}°</div>
+                            <div class="forecast-rain">${rain > 0 ? rain + 'mm' : ''}</div>
                         </div>
                     `;
                 }
