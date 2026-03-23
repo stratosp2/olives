@@ -512,6 +512,7 @@
             const avgWind = recent7.reduce((s, r) => s + r.wind, 0) / recent7.length;
             const recentRain = recent7.reduce((s, r) => s + r.rain, 0);
             const currentWind = currentWeather?.wind || 0;
+            const forecastAvgWind = recent7.reduce((s, r) => s + r.wind, 0) / recent7.length;
             const currentWindThreshold = 20;
             const month = current.month;
             
@@ -536,7 +537,7 @@
                 const inSeason = fert.months.includes(month);
                 const tempOk = avgTemp >= fert.temp[0] && avgTemp <= fert.temp[1];
                 const humOk = avgHumidity >= fert.hum;
-                const windOk = avgWind < fert.wind;
+                const windOk = forecastAvgWind < fert.wind;
                 const noRain = recentRain < 5;
                 
                 let status = 'NOT_YET';
@@ -557,7 +558,7 @@
                     conditions: {
                         temperature: { current: avgTemp.toFixed(1), required: `${fert.temp[0]}-${fert.temp[1]}°C`, ok: tempOk },
                         humidity: { current: avgHumidity.toFixed(1), required: `>${fert.hum}%`, ok: humOk },
-                        wind: { current: avgWind.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
+                        wind: { current: forecastAvgWind.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
                     },
                     status: status,
                     recommendation: status === 'OPTIMAL' ? 'Εφαρμογή τώρα' : status === 'SUBOPTIMAL' ? (reason ? reason : 'Αναμονή για καλύτερες συνθήκες') : 'Εκτός εποχής'
