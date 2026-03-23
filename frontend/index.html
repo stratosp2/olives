@@ -166,6 +166,7 @@
                     <div class="weather-item"><span class="weather-icon">☁️</span><span class="weather-val" id="curClouds">-</span><span class="weather-unit">%</span></div>
                     <div class="weather-item"><span class="weather-icon">💧</span><span class="weather-val" id="curRain">-</span><span class="weather-unit">mm</span></div>
                     <div class="weather-item"><span class="weather-icon">💦</span><span class="weather-val" id="curHumidity">-</span><span class="weather-unit">%</span></div>
+                    <div class="weather-item"><span class="weather-icon">💨</span><span class="weather-val" id="curWind">-</span><span class="weather-unit">km/h</span></div>
                 </div>
                 <div class="last-update" id="lastUpdate">-</div>
             </div>
@@ -301,7 +302,7 @@
             if (weatherCache) return weatherCache;
             
             try {
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code&timezone=Europe/Athens&forecast_days=7');
+                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code,wind_speed_10m_max&timezone=Europe/Athens&forecast_days=7');
                 const data = await resp.json();
                 
                 const daily = data.daily || {};
@@ -313,7 +314,8 @@
                     minTemp: daily.temperature_2m_min?.[i] || 0,
                     rain: daily.precipitation_sum?.[i] || 0,
                     clouds: daily.cloud_cover_mean?.[i] || 50,
-                    humidity: 100 - (daily.cloud_cover_mean?.[i] || 50)
+                    humidity: 100 - (daily.cloud_cover_mean?.[i] || 50),
+                    wind: daily.wind_speed_10m_max?.[i] || 0
                 }));
                 
                 weatherCache = {
@@ -322,6 +324,7 @@
                         humidity: data.current?.relative_humidity_2m || 0,
                         clouds: data.current?.cloud_cover || 0,
                         rain: data.current?.precipitation || 0,
+                        wind: data.current?.wind_speed_10m || 0,
                         updated: data.current?.time ? data.current.time.replace('T', ' ').substring(0, 16) : 'live'
                     },
                     records: records,
@@ -348,6 +351,7 @@
                     document.getElementById('curClouds').textContent = weather.current.clouds;
                     document.getElementById('curRain').textContent = weather.current.rain;
                     document.getElementById('curHumidity').textContent = weather.current.humidity;
+                    document.getElementById('curWind').textContent = weather.current.wind;
                     document.getElementById('lastUpdate').textContent = '📅 ' + weather.current.updated;
                     
                     const daily = weather.daily;
@@ -365,12 +369,14 @@
                         const icon = weatherIcons[daily.weather_code?.[i]] || '🌤️';
                         const maxTemp = Math.round(daily.temperature_2m_max?.[i] || 0);
                         const rain = daily.precipitation_sum?.[i] || 0;
+                        const wind = daily.wind_speed_10m_max?.[i] || 0;
                         html += `
                             <div class="forecast-day">
                                 <div class="forecast-day-name">${i === 0 ? 'Σήμερα' : dayNames[new Date(dates[i].replace(/-/g, '/')).getDay()]}</div>
                                 <div class="forecast-day-icon">${icon}</div>
                                 <div class="forecast-day-temp">${maxTemp}°</div>
                                 <div class="forecast-day-rain">${rain > 0 ? rain + 'mm' : ''}</div>
+                                <div class="forecast-day-rain">${wind > 0 ? '💨' + Math.round(wind) + '' : ''}</div>
                             </div>
                         `;
                     }
@@ -419,13 +425,15 @@
                 const overallRisk = diseaseOverall.HIGH >= 3 ? 'HIGH' : diseaseOverall.HIGH >= 1 || diseaseOverall.MODERATE >= 3 ? 'MODERATE' : 'LOW';
                 
                 document.getElementById('diseaseRiskSection').style.display = 'block';
+                const avgWind = records.reduce((s, r) => s + r.wind, 0) / records.length;
                 renderDiseaseRisk({
                     success: true,
                     overall_risk: overallRisk,
                     current_conditions: {
                         avg_temperature: (records.reduce((s, r) => s + r.avgTemp, 0) / records.length).toFixed(1),
                         total_rain_30d: records.reduce((s, r) => s + r.rain, 0).toFixed(1),
-                        avg_humidity_estimate: (records.reduce((s, r) => s + r.humidity, 0) / records.length).toFixed(1)
+                        avg_humidity_estimate: (records.reduce((s, r) => s + r.humidity, 0) / records.length).toFixed(1),
+                        avg_wind: avgWind.toFixed(1)
                     },
                     diseases: diseaseRisk
                 });
@@ -501,7 +509,9 @@
             const recent7 = records.slice(-7);
             const avgTemp = recent7.reduce((s, r) => s + r.avgTemp, 0) / recent7.length;
             const avgHumidity = recent7.reduce((s, r) => s + r.humidity, 0) / recent7.length;
+            const avgWind = recent7.reduce((s, r) => s + r.wind, 0) / recent7.length;
             const recentRain = recent7.reduce((s, r) => s + r.rain, 0);
+            const maxWind = Math.max(...recent7.map(r => r.wind));
             const month = current.month;
             
             const seasonNames = { winter: 'Χειμώνας', spring: 'Άνοιξη', summer: 'Καλοκαίρι', autumn: 'Φθινόπωρο' };
@@ -509,21 +519,30 @@
             
             const recommendations = [];
             const fertData = {
-                nitrogen: { name: 'Άζωτο (N)', months: [3, 4, 5, 9, 10], temp: [10, 30], hum: 50, desc: 'Πράσινη ανάπτυξη, φωτοσύνθεση' },
-                potassium: { name: 'Κάλιο (K)', months: [6, 7, 8, 9], temp: [15, 35], hum: 40, desc: 'Καρποφορία, αντοχή στην ξηρασία' },
-                boron: { name: 'Βόριο (B)', months: [4, 5, 6], temp: [15, 30], hum: 60, desc: 'Γονιμότητα ανθέων, καρπόδεση' },
-                zinc: { name: 'Ψευδάργυρος (Zn)', months: [3, 4, 5, 10, 11], temp: [10, 28], hum: 50, desc: 'Ανάπτυξη φύλλων, ανθοφορία' },
-                calcium: { name: 'Ασβέστιο (Ca)', months: [4, 5, 6, 7], temp: [15, 32], hum: 50, desc: 'Ενίσχυση κυτταρικών τοιχωμάτων' }
+                nitrogen: { name: 'Άζωτο (N)', months: [3, 4, 5, 9, 10], temp: [10, 30], hum: 50, wind: 15, desc: 'Πράσινη ανάπτυξη, φωτοσύνθεση' },
+                potassium: { name: 'Κάλιο (K)', months: [6, 7, 8, 9], temp: [15, 35], hum: 40, wind: 15, desc: 'Καρποφορία, αντοχή στην ξηρασία' },
+                boron: { name: 'Βόριο (B)', months: [4, 5, 6], temp: [15, 30], hum: 60, wind: 12, desc: 'Γονιμότητα ανθέων, καρπόδεση' },
+                zinc: { name: 'Ψευδάργυρος (Zn)', months: [3, 4, 5, 10, 11], temp: [10, 28], hum: 50, wind: 15, desc: 'Ανάπτυξη φύλλων, ανθοφορία' },
+                calcium: { name: 'Ασβέστιο (Ca)', months: [4, 5, 6, 7], temp: [15, 32], hum: 50, wind: 15, desc: 'Ενίσχυση κυτταρικών τοιχωμάτων' }
             };
             
             for (const [key, fert] of Object.entries(fertData)) {
                 const inSeason = fert.months.includes(month);
                 const tempOk = avgTemp >= fert.temp[0] && avgTemp <= fert.temp[1];
                 const humOk = avgHumidity >= fert.hum;
+                const windOk = maxWind < fert.wind;
                 const noRain = recentRain < 5;
                 
                 let status = 'NOT_YET';
-                if (inSeason) status = tempOk && humOk && noRain ? 'OPTIMAL' : 'SUBOPTIMAL';
+                if (inSeason) status = tempOk && humOk && windOk && noRain ? 'OPTIMAL' : 'SUBOPTIMAL';
+                
+                let reason = '';
+                if (inSeason) {
+                    if (!tempOk) reason += avgTemp < fert.temp[0] ? 'Χαμηλή θερμοκρασία. ' : 'Υψηλή θερμοκρασία. ';
+                    if (!humOk) reason += 'Χαμηλή υγρασία. ';
+                    if (!windOk) reason += 'Ισχυρός άνεμος. ';
+                    if (!noRain) reason += 'Βροχή. ';
+                }
                 
                 recommendations.push({
                     type: key,
@@ -531,16 +550,17 @@
                     description: fert.desc,
                     conditions: {
                         temperature: { current: avgTemp.toFixed(1), required: `${fert.temp[0]}-${fert.temp[1]}°C`, ok: tempOk },
-                        humidity: { current: avgHumidity.toFixed(1), required: `>${fert.hum}%`, ok: humOk }
+                        humidity: { current: avgHumidity.toFixed(1), required: `>${fert.hum}%`, ok: humOk },
+                        wind: { current: maxWind.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
                     },
                     status: status,
-                    recommendation: status === 'OPTIMAL' ? 'Εφαρμογή τώρα' : status === 'SUBOPTIMAL' ? 'Αναμονή για καλύτερες συνθήκες' : 'Εκτός εποχής'
+                    recommendation: status === 'OPTIMAL' ? 'Εφαρμογή τώρα' : status === 'SUBOPTIMAL' ? (reason ? reason : 'Αναμονή για καλύτερες συνθήκες') : 'Εκτός εποχής'
                 });
             }
             
             return {
                 season: seasonNames[season],
-                timing_advice: { best_time_of_day: 'Πρωί (6-9) ή Απόγευμα (17-19)', avoid: 'Ζέστη, α ветер, βροχή' },
+                timing_advice: { best_time_of_day: 'Πρωί (6-9) ή Απόγευμα (17-19)', avoid: 'Ζέστη, αέρας, βροχή' },
                 recommendations: recommendations
             };
         }
@@ -550,9 +570,11 @@
             const bannerClass = overallRisk === 'HIGH' ? 'overall-risk-high' : overallRisk === 'MODERATE' ? 'overall-risk-moderate' : 'overall-risk-low';
             const bannerText = overallRisk === 'HIGH' ? 'Υψηλός κίνδυνος - Απαιτείται άμεση δράση' : overallRisk === 'MODERATE' ? 'Μέτριος κίνδυνος - Παρακολούθηση συνιστάται' : 'Χαμηλός κίνδυνος - Καλές συνθήκες';
             
+            const riskLabelGreek = { HIGH: 'Υψηλός', MODERATE: 'Μέτριος', LOW: 'Χαμηλός' };
+            
             document.getElementById('overallRiskBanner').innerHTML = `
                 <div class="overall-risk-banner ${bannerClass}">
-                    <div class="overall-risk-title">${overallRisk === 'HIGH' ? '🔴' : overallRisk === 'MODERATE' ? '🟡' : '🟢'} Γενικός Κίνδυνος: ${overallRisk}</div>
+                    <div class="overall-risk-title">${overallRisk === 'HIGH' ? '🔴' : overallRisk === 'MODERATE' ? '🟡' : '🟢'} Γενικός Κίνδυνος: ${riskLabelGreek[overallRisk] || overallRisk}</div>
                     <div class="overall-risk-text">${bannerText}</div>
                 </div>
             `;
@@ -586,7 +608,7 @@
                                     <div style="color:var(--accent-gold);">📋 ${disease.best_treatment_time || 'Συμβουλευτείτε ειδικό'}</div>
                                 </span></span>
                             </span>
-                            <span class="risk-badge ${riskBadgeClass}">${riskLabel}</span>
+                            <span class="risk-badge ${riskBadgeClass}">${riskLabelGreek[riskLabel] || riskLabel}</span>
                         </div>
                         <div class="risk-bar"><div class="risk-bar-fill ${riskBarClass}" style="width: ${disease.risk_level}%;"></div></div>
                         <div class="risk-description">${disease.description || ''}</div>
@@ -608,12 +630,12 @@
                     <strong>Υγρασία:</strong> ${currentConditions.humidity || '-'}%
                 </div>
                 <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;">
-                    <strong>Βέλτιστη ώρα:</strong> ${data.timing_advice?.best_time_of_day || 'Πρωί/Απόγευμα'}<br>
-                    <strong>Αποφυγή:</strong> ${data.timing_advice?.avoid || 'Ζέστη, α ветер, βροχή'}
+                    <strong>Ιδανική ώρα:</strong> ${data.timing_advice?.best_time_of_day || 'Πρωί/Απόγευμα'}<br>
+                    <strong>Αποφυγή:</strong> ${data.timing_advice?.avoid || 'Ζέστη, αέρας, βροχή'}
                 </div>
             `;
             
-            const statusNames = { OPTIMAL: 'ΒΕΛΤΙΣΤΟ', SUBOPTIMAL: 'ΥΠΟΒΕΛΤΙΣΤΟ', NOT_YET: 'ΕΚΤΟΣ ΕΠΟΧΗΣ' };
+            const statusNames = { OPTIMAL: 'ΙΔΑΝΙΚΟ', SUBOPTIMAL: 'ΥΠΟΒΕΛΤΙΣΤΟ', NOT_YET: 'ΕΚΤΟΣ ΕΠΟΧΗΣ' };
             const statusClasses = { OPTIMAL: 'status-optimal', SUBOPTIMAL: 'status-suboptimal', NOT_YET: 'status-out-of-season' };
             
             for (const rec of (data.recommendations || [])) {
@@ -621,6 +643,7 @@
                 const conditions = rec.conditions || {};
                 const tempOk = conditions.temperature?.ok;
                 const humOk = conditions.humidity?.ok;
+                const windOk = conditions.wind?.ok;
                 
                 html += `
                     <div class="foliar-card">
@@ -632,6 +655,7 @@
                         <div class="foliar-conditions">
                             <span class="condition-badge ${tempOk ? 'condition-ok' : 'condition-warning'}">🌡️ ${conditions.temperature?.current || '-'}/${conditions.temperature?.required || '-'}</span>
                             <span class="condition-badge ${humOk ? 'condition-ok' : 'condition-warning'}">💧 ${conditions.humidity?.current || '-'}%/${conditions.humidity?.required || '-'}</span>
+                            <span class="condition-badge ${windOk ? 'condition-ok' : 'condition-warning'}">💨 ${conditions.wind?.current || '-'}km/h/${conditions.wind?.required || '-'}</span>
                         </div>
                         <div style="font-size:11px;color:var(--accent);">→ ${rec.recommendation || ''}</div>
                     </div>
