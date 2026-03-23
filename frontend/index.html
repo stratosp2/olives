@@ -512,7 +512,14 @@
             const avgWind = recent7.reduce((s, r) => s + r.wind, 0) / recent7.length;
             const recentRain = recent7.reduce((s, r) => s + r.rain, 0);
             const maxWind = Math.max(...recent7.map(r => r.wind));
+            const currentWind = current.wind || 0;
+            const currentWindThreshold = 20;
             const month = current.month;
+            
+            let avoidText = 'Ζέστη, αέρας, βροχή';
+            if (currentWind > currentWindThreshold) {
+                avoidText = `Αποφυγή: Ισχυρός άνεμος τώρα (${Math.round(currentWind)}km/h). Ζέστη, αέρας, βροχή`;
+            }
             
             const seasonNames = { winter: 'Χειμώνας', spring: 'Άνοιξη', summer: 'Καλοκαίρι', autumn: 'Φθινόπωρο' };
             const season = month in [12, 1, 2] ? 'winter' : month in [3, 4, 5] ? 'spring' : month in [6, 7, 8] ? 'summer' : 'autumn';
@@ -560,7 +567,7 @@
             
             return {
                 season: seasonNames[season],
-                timing_advice: { best_time_of_day: 'Πρωί (6-9) ή Απόγευμα (17-19)', avoid: 'Ζέστη, αέρας, βροχή' },
+                timing_advice: { best_time_of_day: 'Πρωί (6-9) ή Απόγευμα (17-19)', avoid: avoidText },
                 recommendations: recommendations
             };
         }
