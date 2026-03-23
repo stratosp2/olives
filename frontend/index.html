@@ -513,9 +513,18 @@
             const recentRain = recent7.reduce((s, r) => s + r.rain, 0);
             const currentWind = currentWeather?.wind || 0;
             const tomorrowWind = records[1]?.wind || 0;
-            const windForFoliar = (currentWind + tomorrowWind) / 2;
+            const windThreshold = 15;
             const currentWindThreshold = 20;
             const month = current.month;
+            
+            let windOk = tomorrowWind < windThreshold;
+            let windReason = '';
+            if (currentWind > currentWindThreshold) {
+                windReason = 'Ισχυρός άνεμος τώρα. ';
+            }
+            if (tomorrowWind >= windThreshold) {
+                windReason += 'Άνεμος αύριο. ';
+            }
             
             let avoidText = 'Ζέστη, αέρας, βροχή';
             if (currentWind > currentWindThreshold) {
@@ -538,7 +547,6 @@
                 const inSeason = fert.months.includes(month);
                 const tempOk = avgTemp >= fert.temp[0] && avgTemp <= fert.temp[1];
                 const humOk = avgHumidity >= fert.hum;
-                const windOk = windForFoliar < fert.wind;
                 const noRain = recentRain < 5;
                 
                 let status = 'NOT_YET';
@@ -548,7 +556,7 @@
                 if (inSeason) {
                     if (!tempOk) reason += avgTemp < fert.temp[0] ? 'Χαμηλή θερμοκρασία. ' : 'Υψηλή θερμοκρασία. ';
                     if (!humOk) reason += 'Χαμηλή υγρασία. ';
-                    if (!windOk) reason += 'Ισχυρός άνεμος. ';
+                    if (!windOk) reason += windReason || 'Ισχυρός άνεμος. ';
                     if (!noRain) reason += 'Βροχή. ';
                 }
                 
@@ -559,7 +567,7 @@
                     conditions: {
                         temperature: { current: avgTemp.toFixed(1), required: `${fert.temp[0]}-${fert.temp[1]}°C`, ok: tempOk },
                         humidity: { current: avgHumidity.toFixed(1), required: `>${fert.hum}%`, ok: humOk },
-                        wind: { current: windForFoliar.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
+                        wind: { current: tomorrowWind.toFixed(0), required: `<${windThreshold}km/h`, ok: windOk }
                     },
                     status: status,
                     recommendation: status === 'OPTIMAL' ? 'Εφαρμογή τώρα' : status === 'SUBOPTIMAL' ? (reason ? reason : 'Αναμονή για καλύτερες συνθήκες') : 'Εκτός εποχής'
