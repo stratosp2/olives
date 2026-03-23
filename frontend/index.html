@@ -302,7 +302,7 @@
             if (weatherCache) return weatherCache;
             
             try {
-                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code,wind_speed_10m_max&timezone=Europe/Athens&forecast_days=7');
+                const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7333&longitude=22.8333&current=temperature_2m,relative_humidity_2m,precipitation,cloud_cover,wind_speed_10m&past_days=30&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,weather_code,wind_speed_10m_mean&timezone=Europe/Athens&forecast_days=7');
                 const data = await resp.json();
                 
                 const daily = data.daily || {};
@@ -315,7 +315,7 @@
                     rain: daily.precipitation_sum?.[i] || 0,
                     clouds: daily.cloud_cover_mean?.[i] || 50,
                     humidity: 100 - (daily.cloud_cover_mean?.[i] || 50),
-                    wind: daily.wind_speed_10m_max?.[i] || 0
+                    wind: daily.wind_speed_10m_mean?.[i] || 0
                 }));
                 
                 weatherCache = {
@@ -369,7 +369,7 @@
                         const icon = weatherIcons[daily.weather_code?.[i]] || '🌤️';
                         const maxTemp = Math.round(daily.temperature_2m_max?.[i] || 0);
                         const rain = daily.precipitation_sum?.[i] || 0;
-                        const wind = daily.wind_speed_10m_max?.[i] || 0;
+                        const wind = daily.wind_speed_10m_mean?.[i] || 0;
                         html += `
                             <div class="forecast-day">
                                 <div class="forecast-day-name">${i === 0 ? 'Σήμερα' : dayNames[new Date(dates[i].replace(/-/g, '/')).getDay()]}</div>
