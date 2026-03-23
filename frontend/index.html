@@ -382,7 +382,7 @@
                     }
                     document.getElementById('forecastGrid').innerHTML = html;
                     
-                    loadDiseaseAndFoliarData(weather.records);
+                    loadDiseaseAndFoliarData(weather.records, weather.current);
                 }
                 
                 const [dash, hist] = await Promise.all([
@@ -414,7 +414,7 @@
             }
         }
         
-        async function loadDiseaseAndFoliarData(records) {
+        async function loadDiseaseAndFoliarData(records, currentWeather) {
             try {
                 if (!records || records.length === 0) return;
                 
@@ -439,7 +439,7 @@
                 });
                 
                 // Calculate foliar recommendations
-                const foliarRecs = calculateFoliarRecommendations(records);
+                const foliarRecs = calculateFoliarRecommendations(records, currentWeather);
                 document.getElementById('foliarSection').style.display = 'block';
                 renderFoliarRecommendations({ success: true, ...foliarRecs });
                 
@@ -504,15 +504,14 @@
             };
         }
         
-        function calculateFoliarRecommendations(records) {
+        function calculateFoliarRecommendations(records, currentWeather) {
             const current = records[records.length - 1];
             const recent7 = records.slice(-7);
             const avgTemp = recent7.reduce((s, r) => s + r.avgTemp, 0) / recent7.length;
             const avgHumidity = recent7.reduce((s, r) => s + r.humidity, 0) / recent7.length;
             const avgWind = recent7.reduce((s, r) => s + r.wind, 0) / recent7.length;
             const recentRain = recent7.reduce((s, r) => s + r.rain, 0);
-            const maxWind = Math.max(...recent7.map(r => r.wind));
-            const currentWind = current.wind || 0;
+            const currentWind = currentWeather?.wind || 0;
             const currentWindThreshold = 20;
             const month = current.month;
             
@@ -537,7 +536,7 @@
                 const inSeason = fert.months.includes(month);
                 const tempOk = avgTemp >= fert.temp[0] && avgTemp <= fert.temp[1];
                 const humOk = avgHumidity >= fert.hum;
-                const windOk = maxWind < fert.wind;
+                const windOk = avgWind < fert.wind;
                 const noRain = recentRain < 5;
                 
                 let status = 'NOT_YET';
@@ -558,7 +557,7 @@
                     conditions: {
                         temperature: { current: avgTemp.toFixed(1), required: `${fert.temp[0]}-${fert.temp[1]}°C`, ok: tempOk },
                         humidity: { current: avgHumidity.toFixed(1), required: `>${fert.hum}%`, ok: humOk },
-                        wind: { current: maxWind.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
+                        wind: { current: avgWind.toFixed(0), required: `<${fert.wind}km/h`, ok: windOk }
                     },
                     status: status,
                     recommendation: status === 'OPTIMAL' ? 'Εφαρμογή τώρα' : status === 'SUBOPTIMAL' ? (reason ? reason : 'Αναμονή για καλύτερες συνθήκες') : 'Εκτός εποχής'
