@@ -64,13 +64,57 @@ def load_models():
     simple_path = os.path.join(DATA_DIR, "olive_model_simple.pkl")
     if os.path.exists(simple_path):
         with open(simple_path, "rb") as f:
-            return pickle.load(f)
+            data = pickle.load(f)
+        # Normalize keys for get_prediction_data compatibility
+        models = data.get("models") or {"simple": data.get("model")}
+        feature_cols = data.get("feature_cols") or data.get("features")
+        scaler = data.get("scaler", None)
+        if scaler is not None:
+            scaler_mean = getattr(scaler, "mean_", None)
+            scaler_scale = getattr(scaler, "scale_", None)
+            return {
+                "models": models,
+                "feature_cols": feature_cols,
+                "scaler": scaler,
+                "scaler_mean": scaler_mean,
+                "scaler_scale": scaler_scale
+            }
+        else:
+            return {
+                "models": models,
+                "feature_cols": feature_cols,
+                "scaler": scaler,
+                "scaler_mean": None,
+                "scaler_scale": None
+            }
     # Fallback to complex model
     model_path = os.path.join(DATA_DIR, "olive_models.pkl")
     if not os.path.exists(model_path):
         return None
     with open(model_path, "rb") as f:
-        return pickle.load(f)
+        data = pickle.load(f)
+    # Normalize keys for get_prediction_data compatibility
+    models = data.get("models") or {"simple": data.get("model")}
+    feature_cols = data.get("feature_cols") or data.get("features")
+    scaler = data.get("scaler", None)
+    if scaler is not None:
+        scaler_mean = getattr(scaler, "mean_", None)
+        scaler_scale = getattr(scaler, "scale_", None)
+        return {
+            "models": models,
+            "feature_cols": feature_cols,
+            "scaler": scaler,
+            "scaler_mean": scaler_mean,
+            "scaler_scale": scaler_scale
+        }
+    else:
+        return {
+            "models": models,
+            "feature_cols": feature_cols,
+            "scaler": scaler,
+            "scaler_mean": None,
+            "scaler_scale": None
+        }
 
 
 def get_prediction_data():
