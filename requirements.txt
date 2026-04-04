@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-pandas
-numpy
-scikit-learn
-requests
+fastapi 
+uvicorn 
+pandas 
+numpy 
+scikit-learn==1.7.2 
+requests 
