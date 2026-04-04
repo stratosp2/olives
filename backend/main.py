@@ -4,6 +4,7 @@ FastAPI Backend for Olive Yield Forecasting
 Serves predictions and historical data via REST API
 """
 
+from typing import Optional
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
@@ -333,8 +334,8 @@ def get_current_weather():
     try:
         import requests
         
-        LAT = 40.99       # Nea Zichni, Serres region (village)
-        LON = 23.79       # Nea Zichni, Serres region (village)
+        LAT = 41.0302215       # Nea Zichni coordinates from Google Maps
+        LON = 23.8226397       # Nea Zichni coordinates from Google Maps
         
         url = "https://api.openweathermap.org/data/2.5/weather"
         params = {
